@@ -1,0 +1,58 @@
+name: Deploy POS Cockpit
+
+# Deployment auf Knopfdruck:
+# - automatisch bei jedem Push auf main
+# - oder manuell über den "Run workflow"-Button (workflow_dispatch)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Produktions-Build erstellen
+        env:
+          # Supabase-Werte kommen aus den GitHub-Secrets und werden
+          # zur Build-Zeit in die App eingebacken.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: npm run build
+
+      - name: dist/ auf die EC2 übertragen
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "dist/*"
+          target: "/tmp/pos-cockpit-deploy"
+          rm: true
+          strip_components: 1
+
+      - name: Auf der EC2 veröffentlichen
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo mkdir -p /var/www/pos-cockpit
+            sudo rm -rf /var/www/pos-cockpit/*
+            sudo cp -r /tmp/pos-cockpit-deploy/* /var/www/pos-cockpit/
+            sudo chown -R www-data:www-data /var/www/pos-cockpit
+            rm -rf /tmp/pos-cockpit-deploy
+            sudo systemctl reload nginx
