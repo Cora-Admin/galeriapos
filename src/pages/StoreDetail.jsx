@@ -82,7 +82,7 @@ export default function StoreDetail() {
           onClick={() => navigate(`/stores/${id}/abfrage`)}>Storeabfrage</button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
         <div className="panel">
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>Stammdaten</div>
           <div style={{ display: "grid", gap: 12 }}>

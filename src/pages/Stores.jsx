@@ -32,6 +32,7 @@ export default function Stores() {
           value={suche} onChange={(e) => setSuche(e.target.value)} />
       </div>
       <div className="panel" style={{ padding: 0 }}>
+        <div className="table-wrap">
         <table>
           <thead>
             <tr>
@@ -55,6 +56,7 @@ export default function Stores() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

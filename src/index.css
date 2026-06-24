@@ -122,8 +122,26 @@ tbody tr:last-child td { border-bottom: none; }
 .fade-in { animation: fadeIn .25s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
-@media (max-width: 760px) {
+/* Horizontal scrollbare Tabellen (mobil) */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-wrap table { min-width: 600px; }
+
+/* Mobile Navigation */
+.menu-btn { display: none; align-items: center; justify-content: center;
+  width: 42px; height: 42px; padding: 0; font-size: 20px; }
+.mobile-menu { display: none; }
+.nav-item-mobile { padding: 13px 14px; border-radius: 10px; font-weight: 600;
+  color: var(--text); font-size: 15px; }
+.nav-item-mobile:active { background: var(--panel2); }
+.nav-item-mobile.active { background: var(--navy); color: #fff; }
+
+@media (max-width: 820px) {
   .hide-sm { display: none; }
   .app-header-inner { padding: 10px 16px; gap: 10px; }
   .wrap { padding: 18px 16px 48px; }
+  .nav-desktop, .user-desktop { display: none !important; }
+  .menu-btn { display: inline-flex; margin-left: auto; }
+  .mobile-menu { display: flex; flex-direction: column; gap: 4px;
+    padding: 10px 16px 16px; border-top: 1px solid var(--line);
+    background: var(--panel); box-shadow: var(--shadow); }
 }

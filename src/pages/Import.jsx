@@ -139,7 +139,7 @@ export default function Import() {
           <div className="panel" style={{ padding: 0, marginBottom: 16 }}>
             <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--line)",
               fontWeight: 700, fontSize: 13 }}>Vorschau (erste {preview.length})</div>
-            <div style={{ overflow: "auto" }}>
+            <div className="table-wrap">
               <table>
                 <thead><tr>{cols.map((c) => <th key={c}>{c}</th>)}</tr></thead>
                 <tbody>

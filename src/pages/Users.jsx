@@ -74,6 +74,7 @@ export default function Users() {
       </form>
 
       <div className="panel" style={{ padding: 0 }}>
+        <div className="table-wrap">
         <table>
           <thead>
             <tr><th>Name</th><th>E-Mail</th><th>Rolle</th><th>Status</th><th></th></tr>
@@ -87,6 +88,7 @@ export default function Users() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

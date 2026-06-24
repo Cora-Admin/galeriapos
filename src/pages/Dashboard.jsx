@@ -56,7 +56,7 @@ export default function Dashboard() {
           fontWeight: 700, fontSize: 14 }}>
           Migrationsstatus pro Store · {total} Filialen · {kassen} Kassen
         </div>
-        <div style={{ maxHeight: 520, overflow: "auto" }}>
+        <div className="table-wrap" style={{ maxHeight: 520, overflow: "auto" }}>
           <table>
             <thead>
               <tr>
