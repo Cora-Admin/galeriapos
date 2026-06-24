@@ -101,5 +101,5 @@ src/
 - `kassen` – Kassen pro Store
 - `checklist_template_groups` / `checklist_template_items` – Checklisten-Vorlage
 - `checklist_results` – abgehakte Punkte pro Kasse (mit Zeitstempel + Bearbeiter,
-  je Punkt zusätzlich Freitextfeld `problem` zum Melden eines Problems)
+  je Punkt zusätzlich Freitextfelder `kommentar` und `problem`)
 - View `store_migration_status` – berechnet Fortschritt/Status pro Store

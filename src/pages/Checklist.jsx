@@ -10,7 +10,7 @@ export default function Checklist() {
   const [store, setStore] = useState(null);
   const [template, setTemplate] = useState([]);
   const [results, setResults] = useState({}); // item_id -> erledigt
-  const [texts, setTexts] = useState({}); // item_id -> { problem }
+  const [texts, setTexts] = useState({}); // item_id -> { kommentar, problem }
   const [err, setErr] = useState("");
 
   useEffect(() => { load(); }, [kasseId]);
@@ -24,7 +24,7 @@ export default function Checklist() {
       const txt = {};
       res.forEach((r) => {
         map[r.item_id] = r.erledigt;
-        txt[r.item_id] = { problem: r.problem || "" };
+        txt[r.item_id] = { kommentar: r.kommentar || "", problem: r.problem || "" };
       });
       setResults(map);
       setTexts(txt);
@@ -95,7 +95,7 @@ export default function Checklist() {
             <div style={{ display: "grid", gap: 2 }}>
               {g.items.map((item) => {
                 const checked = !!results[item.id];
-                const t = texts[item.id] || { problem: "" };
+                const t = texts[item.id] || { kommentar: "", problem: "" };
                 const hasProblem = !!(t.problem && t.problem.trim());
                 return (
                   <div key={item.id} style={{ padding: "6px 8px 10px", borderRadius: 8,
@@ -113,7 +113,14 @@ export default function Checklist() {
                       )}
                     </label>
                     <div style={{ display: "grid", gap: 6, marginTop: 6, paddingLeft: 30 }}>
-                      <textarea rows={1} placeholder="Problem / Fehlermeldung melden…"
+                      <textarea rows={1} placeholder="Kommentar"
+                        value={t.kommentar}
+                        onChange={(e) => onTextChange(item.id, "kommentar", e.target.value)}
+                        onBlur={(e) => saveText(item.id, "kommentar", e.target.value, t.kommentar)}
+                        style={{ width: "100%", resize: "vertical", fontSize: 13, padding: "6px 8px",
+                          borderRadius: 6, border: "1px solid var(--line)", background: "var(--bg)",
+                          color: "var(--text)", fontFamily: "inherit" }} />
+                      <textarea rows={1} placeholder="Problem melden"
                         value={t.problem}
                         onChange={(e) => onTextChange(item.id, "problem", e.target.value)}
                         onBlur={(e) => saveText(item.id, "problem", e.target.value, t.problem)}
