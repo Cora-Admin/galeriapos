@@ -29,9 +29,14 @@ export default function Dashboard() {
     .filter((x) => x.n > 0);
 
   const Kpi = ({ label, value, color }) => (
-    <div className="panel" style={{ padding: 16 }}>
-      <div className="label">{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 800, color, marginTop: 4 }}>{value}</div>
+    <div className="panel" style={{ padding: 16, position: "relative", overflow: "hidden" }}>
+      <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: color }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        <span style={{ width: 8, height: 8, borderRadius: 99, background: color }} />
+        <div className="label" style={{ margin: 0 }}>{label}</div>
+      </div>
+      <div style={{ fontSize: 30, fontWeight: 800, color: "var(--text)", marginTop: 8,
+        letterSpacing: "-.02em" }}>{value}</div>
     </div>
   );
 

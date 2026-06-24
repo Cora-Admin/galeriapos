@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext.jsx";
+import BrandMark from "../components/BrandMark.jsx";
 
 export default function Login() {
   const { signIn, resetPassword } = useAuth();
@@ -35,16 +36,14 @@ export default function Login() {
       backgroundSize: "cover",
       backgroundPosition: "center",
     }}>
-      <form onSubmit={handleLogin} className="panel" style={{ width: 360, padding: 28,
-        boxShadow: "0 18px 50px rgba(10,37,64,.45)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 8,
-            background: "linear-gradient(135deg, var(--accent), var(--blue))",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontWeight: 800, color: "#fff" }}>P</div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 16 }}>POS Migration Cockpit</div>
-            <div style={{ fontSize: 12, color: "var(--dim)" }}>GALERIA Rollout</div>
+      <form onSubmit={handleLogin} className="panel" style={{ width: 372, padding: 30,
+        boxShadow: "var(--shadow-lg)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
+          <BrandMark size={42} rounded={12} />
+          <div style={{ lineHeight: 1.3 }}>
+            <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-.01em" }}>POS Migration Cockpit</div>
+            <div style={{ fontSize: 11, color: "var(--dim)", fontWeight: 600,
+              textTransform: "uppercase", letterSpacing: ".08em" }}>GALERIA Rollout</div>
           </div>
         </div>
 
