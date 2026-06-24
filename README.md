@@ -86,20 +86,30 @@ src/
   components/
     Layout.jsx         Header-Navigation + Logout
     StatusBadge.jsx    Statusanzeige
+    Badges.jsx         Store-Typ-Farbbadge + Probleme-Zähler
   pages/
     Login.jsx          E-Mail/Passwort-Login
     Dashboard.jsx      KPIs + Migrationsstatus (aus View store_migration_status)
-    Stores.jsx         Filialliste mit Suche
-    StoreDetail.jsx    Stammdaten + Kassen + Checklisten-Einstieg
-    Checklist.jsx      Checkliste pro Kasse durchführen
-    Template.jsx       Vorlagen-Übersicht
+    Stores.jsx         Filialliste mit Suche (inkl. Probleme-Spalte)
+    StoreDetail.jsx    Stammdaten + Ansprechpartner + ATOS-Ingenieure + Kassen
+    Checklist.jsx      Checkliste pro Kasse durchführen (Kommentar/Problem je Punkt)
+    StoreQuery.jsx     Storeabfrage je Filiale beantworten
+    Template.jsx       Vorlage Checkliste
+    QueryTemplate.jsx  Vorlage Storeabfrage
+    Users.jsx          Userverwaltung (Team-Verzeichnis)
+    Import.jsx         Excel-/CSV-Import Kassenliste (SheetJS, lazy)
 ```
 
 ## Datenbank (Supabase Projekt "Galeria Rollout")
 
-- `stores` – 83 echte GALERIA-Filialen
-- `kassen` – Kassen pro Store
+- `stores` – 83 echte GALERIA-Filialen; zusätzlich `ansprechpartner(_email/_telefon)`
+  und `atos_ingenieure uuid[]` (zugeordnete ATOS-Rollout-Ingenieure)
+- `kassen` – Kassen pro Store (neue Kassen erhalten per Trigger automatisch
+  Checklisten-Ergebniszeilen)
 - `checklist_template_groups` / `checklist_template_items` – Checklisten-Vorlage
 - `checklist_results` – abgehakte Punkte pro Kasse (mit Zeitstempel + Bearbeiter,
   je Punkt zusätzlich Freitextfelder `kommentar` und `problem`)
-- View `store_migration_status` – berechnet Fortschritt/Status pro Store
+- `app_users` – Team-/Userverzeichnis (Name, E-Mail, Rolle, aktiv)
+- `store_query_groups` / `store_query_items` / `store_query_answers` – Storeabfrage
+  (Vorlage + Antworten je Filiale, analog zur Checkliste)
+- View `store_migration_status` – Fortschritt/Status **und Anzahl Probleme** pro Store

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMigrationStatus } from "../lib/data.js";
 import { StatusBadge, STATUS_COLOR } from "../components/StatusBadge.jsx";
+import { StoreTypBadge, ProblemCount } from "../components/Badges.jsx";
 
 export default function Dashboard() {
   const [rows, setRows] = useState(null);
@@ -19,6 +20,13 @@ export default function Dashboard() {
   const kassen = rows.reduce((a, r) => a + (r.anzahl_kassen || 0), 0);
   const byStatus = rows.reduce((a, r) => { a[r.status] = (a[r.status] || 0) + 1; return a; }, {});
   const avg = total ? Math.round(rows.reduce((a, r) => a + Number(r.fortschritt_pct), 0) / total) : 0;
+  const probleme = rows.reduce((a, r) => a + (Number(r.probleme) || 0), 0);
+
+  // Storeübergreifender Fortschritt: gestapelter Balken nach Status.
+  const STATUS_ORDER = ["Fertig", "Läuft", "Geplant", "Offen"];
+  const segments = STATUS_ORDER
+    .map((s) => ({ s, n: byStatus[s] || 0 }))
+    .filter((x) => x.n > 0);
 
   const Kpi = ({ label, value, color }) => (
     <div className="panel" style={{ padding: 16 }}>
@@ -36,6 +44,30 @@ export default function Dashboard() {
         <Kpi label="In Arbeit" value={byStatus["Läuft"] || 0} color={STATUS_COLOR["Läuft"]} />
         <Kpi label="Geplant" value={byStatus["Geplant"] || 0} color={STATUS_COLOR["Geplant"]} />
         <Kpi label="Offen" value={byStatus["Offen"] || 0} color={STATUS_COLOR["Offen"]} />
+        <Kpi label="Probleme" value={probleme} color="var(--coral)" />
+      </div>
+
+      <div className="panel" style={{ marginBottom: 20 }}>
+        <div className="label" style={{ marginBottom: 10 }}>
+          Fortschritt storeübergreifend
+        </div>
+        <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden",
+          border: "1px solid var(--line)" }}>
+          {segments.map(({ s, n }) => (
+            <div key={s} title={`${s}: ${n}`}
+              style={{ width: `${(n / total) * 100}%`, background: STATUS_COLOR[s] }} />
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 16, marginTop: 10, flexWrap: "wrap" }}>
+          {STATUS_ORDER.map((s) => (
+            <div key={s} style={{ display: "flex", alignItems: "center", gap: 6,
+              fontSize: 12, color: "var(--dim)" }}>
+              <span style={{ width: 10, height: 10, borderRadius: 99,
+                background: STATUS_COLOR[s], display: "inline-block" }} />
+              {s} · {byStatus[s] || 0}
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="panel" style={{ padding: 0 }}>
@@ -47,8 +79,8 @@ export default function Dashboard() {
           <table>
             <thead>
               <tr>
-                <th>Fil.-Nr.</th><th>Store</th><th>Typ</th><th>Migration</th>
-                <th>Kassen fertig</th><th>Fortschritt</th><th>Status</th>
+                <th>Fil.-Nr.</th><th>Filiale</th><th>Typ</th><th>Migration</th>
+                <th>Kassen fertig</th><th>Probleme</th><th>Fortschritt</th><th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -57,9 +89,10 @@ export default function Dashboard() {
                   onClick={() => navigate(`/stores/${r.id}`)}>
                   <td style={{ color: "var(--dim)" }}>{r.filiale}</td>
                   <td style={{ fontWeight: 600 }}>{r.name}</td>
-                  <td>{r.store_typ}</td>
+                  <td><StoreTypBadge typ={r.store_typ} /></td>
                   <td style={{ color: "var(--dim)" }}>{r.migrationsdatum || "—"}</td>
                   <td style={{ color: "var(--dim)" }}>{r.kassen_fertig}/{r.anzahl_kassen}</td>
+                  <td><ProblemCount n={Number(r.probleme) || 0} /></td>
                   <td>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div className="bar" style={{ flex: 1, minWidth: 80 }}>

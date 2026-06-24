@@ -34,10 +34,13 @@ export default function Layout() {
           </div>
         </div>
         <nav style={{ display: "flex", gap: 4, background: "var(--panel)", padding: 4,
-          borderRadius: 10, border: "1px solid var(--line)" }}>
+          borderRadius: 10, border: "1px solid var(--line)", flexWrap: "wrap" }}>
           <NavLink to="/" end style={navStyle}>Übersicht</NavLink>
-          <NavLink to="/stores" style={navStyle}>Stores</NavLink>
-          <NavLink to="/vorlage" style={navStyle}>Vorlage</NavLink>
+          <NavLink to="/stores" style={navStyle}>Filialen</NavLink>
+          <NavLink to="/vorlage" style={navStyle}>Checkliste</NavLink>
+          <NavLink to="/abfrage-vorlage" style={navStyle}>Abfrage</NavLink>
+          <NavLink to="/import" style={navStyle}>Import</NavLink>
+          <NavLink to="/users" style={navStyle}>Users</NavLink>
         </nav>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 12, color: "var(--dim)" }}>{user?.email}</span>

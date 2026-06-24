@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getStore, getTemplate, getResults, setResult, setResultText } from "../lib/data.js";
 import { useAuth } from "../lib/AuthContext.jsx";
@@ -10,7 +10,8 @@ export default function Checklist() {
   const [store, setStore] = useState(null);
   const [template, setTemplate] = useState([]);
   const [results, setResults] = useState({}); // item_id -> erledigt
-  const [texts, setTexts] = useState({}); // item_id -> { kommentar, problem }
+  const [texts, setTexts] = useState({}); // item_id -> { kommentar, problem } (live edit)
+  const saved = useRef({}); // item_id -> { kommentar, problem } zuletzt gespeichert
   const [err, setErr] = useState("");
 
   useEffect(() => { load(); }, [kasseId]);
@@ -28,6 +29,7 @@ export default function Checklist() {
       });
       setResults(map);
       setTexts(txt);
+      saved.current = JSON.parse(JSON.stringify(txt));
     } catch (e) { setErr(e.message); }
   }
 
@@ -47,10 +49,12 @@ export default function Checklist() {
   }
 
   // Beim Verlassen des Feldes speichern, sofern sich der Wert geändert hat.
-  async function saveText(itemId, field, val, original) {
-    if ((val || "") === (original || "")) return;
+  async function saveText(itemId, field, val) {
+    const prev = saved.current[itemId] || {};
+    if ((val || "") === (prev[field] || "")) return;
     try {
       await setResultText(kasseId, itemId, { [field]: val || null });
+      saved.current[itemId] = { ...prev, [field]: val };
     } catch (e) {
       setErr(e.message);
     }
@@ -116,14 +120,14 @@ export default function Checklist() {
                       <textarea rows={1} placeholder="Kommentar"
                         value={t.kommentar}
                         onChange={(e) => onTextChange(item.id, "kommentar", e.target.value)}
-                        onBlur={(e) => saveText(item.id, "kommentar", e.target.value, t.kommentar)}
+                        onBlur={(e) => saveText(item.id, "kommentar", e.target.value)}
                         style={{ width: "100%", resize: "vertical", fontSize: 13, padding: "6px 8px",
                           borderRadius: 6, border: "1px solid var(--line)", background: "var(--bg)",
                           color: "var(--text)", fontFamily: "inherit" }} />
                       <textarea rows={1} placeholder="Problem melden"
                         value={t.problem}
                         onChange={(e) => onTextChange(item.id, "problem", e.target.value)}
-                        onBlur={(e) => saveText(item.id, "problem", e.target.value, t.problem)}
+                        onBlur={(e) => saveText(item.id, "problem", e.target.value)}
                         style={{ width: "100%", resize: "vertical", fontSize: 13, padding: "6px 8px",
                           borderRadius: 6, fontFamily: "inherit",
                           border: `1px solid ${hasProblem ? "var(--coral)" : "var(--line)"}`,

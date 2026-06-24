@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMigrationStatus } from "../lib/data.js";
 import { StatusBadge } from "../components/StatusBadge.jsx";
+import { StoreTypBadge, ProblemCount } from "../components/Badges.jsx";
 
 export default function Stores() {
   const [rows, setRows] = useState(null);
@@ -34,8 +35,8 @@ export default function Stores() {
         <table>
           <thead>
             <tr>
-              <th>Fil.-Nr.</th><th>Store</th><th>Stadt</th><th>Kassen</th>
-              <th>Typ</th><th>Migration</th><th>Status</th>
+              <th>Fil.-Nr.</th><th>Filiale</th><th>Stadt</th><th>Kassen</th>
+              <th>Typ</th><th>Migration</th><th>Probleme</th><th>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -46,8 +47,9 @@ export default function Stores() {
                 <td style={{ fontWeight: 600 }}>{r.name}</td>
                 <td style={{ color: "var(--dim)" }}>{r.stadt}</td>
                 <td>{r.anzahl_kassen}</td>
-                <td>{r.store_typ}</td>
+                <td><StoreTypBadge typ={r.store_typ} /></td>
                 <td style={{ color: "var(--dim)" }}>{r.migrationsdatum || "—"}</td>
+                <td><ProblemCount n={Number(r.probleme) || 0} /></td>
                 <td><StatusBadge status={r.status} /></td>
               </tr>
             ))}

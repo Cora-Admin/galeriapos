@@ -8,6 +8,10 @@ import Stores from "./pages/Stores.jsx";
 import StoreDetail from "./pages/StoreDetail.jsx";
 import Checklist from "./pages/Checklist.jsx";
 import Template from "./pages/Template.jsx";
+import QueryTemplate from "./pages/QueryTemplate.jsx";
+import StoreQuery from "./pages/StoreQuery.jsx";
+import Users from "./pages/Users.jsx";
+import Import from "./pages/Import.jsx";
 import Layout from "./components/Layout.jsx";
 import "./index.css";
 
@@ -34,7 +38,11 @@ function App() {
           <Route path="/stores" element={<Stores />} />
           <Route path="/stores/:id" element={<StoreDetail />} />
           <Route path="/stores/:id/kasse/:kasseId" element={<Checklist />} />
+          <Route path="/stores/:id/abfrage" element={<StoreQuery />} />
           <Route path="/vorlage" element={<Template />} />
+          <Route path="/abfrage-vorlage" element={<QueryTemplate />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/import" element={<Import />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
