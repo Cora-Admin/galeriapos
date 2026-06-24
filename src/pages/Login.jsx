@@ -30,8 +30,13 @@ export default function Login() {
   }
 
   return (
-    <div className="center-screen">
-      <form onSubmit={handleLogin} className="panel" style={{ width: 360, padding: 28 }}>
+    <div className="center-screen" style={{
+      backgroundImage: "url(/galeria-bg.svg)",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    }}>
+      <form onSubmit={handleLogin} className="panel" style={{ width: 360, padding: 28,
+        boxShadow: "0 18px 50px rgba(10,37,64,.45)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
           <div style={{ width: 36, height: 36, borderRadius: 8,
             background: "linear-gradient(135deg, var(--accent), var(--blue))",

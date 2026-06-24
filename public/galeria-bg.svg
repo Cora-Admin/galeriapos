@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1760 980" preserveAspectRatio="xMidYMid slice" role="img" aria-label="GALERIA">
+  <!-- GALERIA Markenhintergrund: Navy + Logo-Motiv (ineinandergreifende Ringe) -->
+  <rect width="1760" height="980" fill="#1f3a5e"/>
+  <g fill="none" stroke="#cde6c2" stroke-width="86">
+    <!-- 2x2 Ring-Cluster, leicht überlappend, nach rechts auslaufend -->
+    <circle cx="1190" cy="300" r="210"/>
+    <circle cx="1575" cy="300" r="210"/>
+    <circle cx="1190" cy="685" r="210"/>
+    <circle cx="1575" cy="685" r="210"/>
+    <!-- rechter "Bump"-Ring, bleibt am Rand angeschnitten -->
+    <circle cx="1760" cy="492" r="200"/>
+  </g>
+  <!-- zentraler Ring -->
+  <circle cx="1383" cy="492" r="120" fill="none" stroke="#cde6c2" stroke-width="74"/>
+</svg>
