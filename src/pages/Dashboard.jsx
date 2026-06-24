@@ -19,57 +19,33 @@ export default function Dashboard() {
   const total = rows.length;
   const kassen = rows.reduce((a, r) => a + (r.anzahl_kassen || 0), 0);
   const byStatus = rows.reduce((a, r) => { a[r.status] = (a[r.status] || 0) + 1; return a; }, {});
-  const avg = total ? Math.round(rows.reduce((a, r) => a + Number(r.fortschritt_pct), 0) / total) : 0;
-  const probleme = rows.reduce((a, r) => a + (Number(r.probleme) || 0), 0);
 
-  // Storeübergreifender Fortschritt: gestapelter Balken nach Status.
-  const STATUS_ORDER = ["Fertig", "Läuft", "Geplant", "Offen"];
+  // Storeübergreifender Fortschritt: gestapelter Balken nach Status (ohne "Geplant").
+  const STATUS_ORDER = ["Fertig", "Läuft", "Offen"];
   const segments = STATUS_ORDER
     .map((s) => ({ s, n: byStatus[s] || 0 }))
     .filter((x) => x.n > 0);
 
-  const Kpi = ({ label, value, color }) => (
-    <div className="panel" style={{ padding: 16, position: "relative", overflow: "hidden" }}>
-      <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: color }} />
-      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-        <span style={{ width: 8, height: 8, borderRadius: 99, background: color }} />
-        <div className="label" style={{ margin: 0 }}>{label}</div>
-      </div>
-      <div style={{ fontSize: 30, fontWeight: 800, color: "var(--text)", marginTop: 8,
-        letterSpacing: "-.02em" }}>{value}</div>
-    </div>
-  );
-
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px,1fr))",
-        gap: 12, marginBottom: 20 }}>
-        <Kpi label="Gesamtfortschritt" value={`${avg}%`} color="var(--accent)" />
-        <Kpi label="Fertig" value={byStatus["Fertig"] || 0} color={STATUS_COLOR["Fertig"]} />
-        <Kpi label="In Arbeit" value={byStatus["Läuft"] || 0} color={STATUS_COLOR["Läuft"]} />
-        <Kpi label="Geplant" value={byStatus["Geplant"] || 0} color={STATUS_COLOR["Geplant"]} />
-        <Kpi label="Offen" value={byStatus["Offen"] || 0} color={STATUS_COLOR["Offen"]} />
-        <Kpi label="Probleme" value={probleme} color="var(--coral)" />
-      </div>
-
       <div className="panel" style={{ marginBottom: 20 }}>
-        <div className="label" style={{ marginBottom: 10 }}>
+        <div className="label" style={{ marginBottom: 14 }}>
           Fortschritt storeübergreifend
         </div>
-        <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden",
-          border: "1px solid var(--line)" }}>
+        <div style={{ display: "flex", height: 32, borderRadius: 99, overflow: "hidden",
+          border: "1px solid var(--line)", background: "var(--panel2)" }}>
           {segments.map(({ s, n }) => (
             <div key={s} title={`${s}: ${n}`}
               style={{ width: `${(n / total) * 100}%`, background: STATUS_COLOR[s] }} />
           ))}
         </div>
-        <div style={{ display: "flex", gap: 16, marginTop: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 20, marginTop: 14, flexWrap: "wrap" }}>
           {STATUS_ORDER.map((s) => (
-            <div key={s} style={{ display: "flex", alignItems: "center", gap: 6,
-              fontSize: 12, color: "var(--dim)" }}>
-              <span style={{ width: 10, height: 10, borderRadius: 99,
+            <div key={s} style={{ display: "flex", alignItems: "center", gap: 7,
+              fontSize: 13, color: "var(--dim)" }}>
+              <span style={{ width: 11, height: 11, borderRadius: 99,
                 background: STATUS_COLOR[s], display: "inline-block" }} />
-              {s} · {byStatus[s] || 0}
+              {s}
             </div>
           ))}
         </div>
