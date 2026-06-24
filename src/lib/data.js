@@ -149,3 +149,18 @@ export async function setResult(kasseId, itemId, erledigt, bearbeiter) {
   if (error) throw error;
   return data;
 }
+
+// Kommentar/Bemerkung bzw. Problem-/Fehlermeldung zu einem Checklisten-Punkt
+// speichern. `patch` enthält die zu aktualisierenden Felder, z. B.
+// { kommentar: "…" } oder { problem: "…" }.
+export async function setResultText(kasseId, itemId, patch) {
+  const { data, error } = await supabase
+    .from("checklist_results")
+    .update(patch)
+    .eq("kasse_id", kasseId)
+    .eq("item_id", itemId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}

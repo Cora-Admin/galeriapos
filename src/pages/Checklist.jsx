@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getStore, getTemplate, getResults, setResult } from "../lib/data.js";
+import { getStore, getTemplate, getResults, setResult, setResultText } from "../lib/data.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 
 export default function Checklist() {
@@ -10,6 +10,7 @@ export default function Checklist() {
   const [store, setStore] = useState(null);
   const [template, setTemplate] = useState([]);
   const [results, setResults] = useState({}); // item_id -> erledigt
+  const [texts, setTexts] = useState({}); // item_id -> { kommentar, problem }
   const [err, setErr] = useState("");
 
   useEffect(() => { load(); }, [kasseId]);
@@ -20,8 +21,13 @@ export default function Checklist() {
       setTemplate(await getTemplate());
       const res = await getResults(kasseId);
       const map = {};
-      res.forEach((r) => { map[r.item_id] = r.erledigt; });
+      const txt = {};
+      res.forEach((r) => {
+        map[r.item_id] = r.erledigt;
+        txt[r.item_id] = { kommentar: r.kommentar || "", problem: r.problem || "" };
+      });
       setResults(map);
+      setTexts(txt);
     } catch (e) { setErr(e.message); }
   }
 
@@ -32,6 +38,21 @@ export default function Checklist() {
     } catch (e) {
       setErr(e.message);
       setResults((prev) => ({ ...prev, [itemId]: !val })); // Rollback
+    }
+  }
+
+  // Lokale Eingabe ohne sofortigen DB-Write (gespeichert wird beim Verlassen).
+  function onTextChange(itemId, field, val) {
+    setTexts((prev) => ({ ...prev, [itemId]: { ...prev[itemId], [field]: val } }));
+  }
+
+  // Beim Verlassen des Feldes speichern, sofern sich der Wert geändert hat.
+  async function saveText(itemId, field, val, original) {
+    if ((val || "") === (original || "")) return;
+    try {
+      await setResultText(kasseId, itemId, { [field]: val || null });
+    } catch (e) {
+      setErr(e.message);
     }
   }
 
@@ -74,16 +95,42 @@ export default function Checklist() {
             <div style={{ display: "grid", gap: 2 }}>
               {g.items.map((item) => {
                 const checked = !!results[item.id];
+                const t = texts[item.id] || { kommentar: "", problem: "" };
+                const hasProblem = !!(t.problem && t.problem.trim());
                 return (
-                  <label key={item.id} style={{ display: "flex", alignItems: "center", gap: 12,
-                    padding: "10px 8px", borderRadius: 8, cursor: "pointer",
+                  <div key={item.id} style={{ padding: "6px 8px 10px", borderRadius: 8,
                     background: checked ? "color-mix(in srgb, var(--accent) 8%, transparent)" : "transparent" }}>
-                    <input type="checkbox" checked={checked}
-                      onChange={(e) => toggle(item.id, e.target.checked)}
-                      style={{ width: 18, height: 18, accentColor: "var(--accent)", cursor: "pointer" }} />
-                    <span style={{ fontSize: 14, textDecoration: checked ? "line-through" : "none",
-                      color: checked ? "var(--dim)" : "var(--text)" }}>{item.text}</span>
-                  </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 12,
+                      padding: "4px 0", cursor: "pointer" }}>
+                      <input type="checkbox" checked={checked}
+                        onChange={(e) => toggle(item.id, e.target.checked)}
+                        style={{ width: 18, height: 18, accentColor: "var(--accent)", cursor: "pointer" }} />
+                      <span style={{ fontSize: 14, textDecoration: checked ? "line-through" : "none",
+                        color: checked ? "var(--dim)" : "var(--text)" }}>{item.text}</span>
+                      {hasProblem && (
+                        <span title="Problem gemeldet" style={{ marginLeft: "auto", fontSize: 11,
+                          fontWeight: 700, color: "var(--coral)" }}>⚠ Problem</span>
+                      )}
+                    </label>
+                    <div style={{ display: "grid", gap: 6, marginTop: 6, paddingLeft: 30 }}>
+                      <textarea rows={1} placeholder="Kommentar / Bemerkung…"
+                        value={t.kommentar}
+                        onChange={(e) => onTextChange(item.id, "kommentar", e.target.value)}
+                        onBlur={(e) => saveText(item.id, "kommentar", e.target.value, t.kommentar)}
+                        style={{ width: "100%", resize: "vertical", fontSize: 13, padding: "6px 8px",
+                          borderRadius: 6, border: "1px solid var(--line)", background: "var(--bg)",
+                          color: "var(--text)", fontFamily: "inherit" }} />
+                      <textarea rows={1} placeholder="Problem / Fehlermeldung melden…"
+                        value={t.problem}
+                        onChange={(e) => onTextChange(item.id, "problem", e.target.value)}
+                        onBlur={(e) => saveText(item.id, "problem", e.target.value, t.problem)}
+                        style={{ width: "100%", resize: "vertical", fontSize: 13, padding: "6px 8px",
+                          borderRadius: 6, fontFamily: "inherit",
+                          border: `1px solid ${hasProblem ? "var(--coral)" : "var(--line)"}`,
+                          background: hasProblem ? "color-mix(in srgb, var(--coral) 8%, transparent)" : "var(--bg)",
+                          color: "var(--text)" }} />
+                    </div>
+                  </div>
                 );
               })}
             </div>
