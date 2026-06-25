@@ -8,7 +8,7 @@ import MultiSelect from "../components/MultiSelect.jsx";
 import DateInputDE from "../components/DateInputDE.jsx";
 
 // Rollen der 3 Ansprechpartner je Filiale (Reihenfolge = Position in der Liste).
-const KONTAKT_ROLLEN = ["Filialleiter", "Stellv. Filialleiter", "IT-/Technik-Ansprechpartner"];
+const KONTAKT_ROLLEN = ["Filialansprechpartner", "Vertreter", "Fieldservice"];
 
 export default function StoreDetail() {
   const { id } = useParams();
