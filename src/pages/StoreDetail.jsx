@@ -15,8 +15,12 @@ export default function StoreDetail() {
   const [fortschritt, setFortschritt] = useState({}); // kasseId -> {done,total}
   const [err, setErr] = useState("");
   const [saved, setSaved] = useState(false);
+  const [zusatz, setZusatz] = useState(""); // lokaler Puffer für Zusatzinfos
 
   useEffect(() => { load(); }, [id]);
+
+  // Zusatzinfos-Puffer einmalig beim Laden der Filiale setzen (nicht bei jedem Patch).
+  useEffect(() => { if (store) setZusatz(store.zusatzinfos || ""); }, [store?.id]);
 
   async function load() {
     try {
@@ -126,7 +130,22 @@ export default function StoreDetail() {
                   placeholder="Ingenieur(e) wählen…" />
               )}
             </div>
-            <Field label="Zusatzinfos" field="zusatzinfos" textarea />
+            <div>
+              <div className="label">Zusatzinfos</div>
+              <textarea className="input" style={{ minHeight: 70, resize: "vertical" }}
+                value={zusatz} onChange={(e) => setZusatz(e.target.value)} />
+              <div style={{ display: "flex", alignItems: "center", gap: 10,
+                justifyContent: "flex-end", marginTop: 8 }}>
+                {zusatz !== (store.zusatzinfos || "") && (
+                  <span style={{ fontSize: 12, color: "var(--dim)", marginRight: "auto" }}>
+                    Nicht gespeicherte Änderungen
+                  </span>
+                )}
+                <button className="btn btn-primary"
+                  disabled={zusatz === (store.zusatzinfos || "")}
+                  onClick={() => patch("zusatzinfos", zusatz)}>Speichern</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
