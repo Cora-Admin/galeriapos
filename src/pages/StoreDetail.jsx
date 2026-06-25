@@ -5,6 +5,7 @@ import {
 } from "../lib/data.js";
 import { STORE_TYPEN } from "../components/Badges.jsx";
 import MultiSelect from "../components/MultiSelect.jsx";
+import DateInputDE from "../components/DateInputDE.jsx";
 
 export default function StoreDetail() {
   const { id } = useParams();
@@ -118,7 +119,11 @@ export default function StoreDetail() {
           <div style={{ display: "grid", gap: 12 }}>
             <Field label="POS-HW Bondrucker" field="pos_bondrucker" />
             <Field label="Pole / Kundendisplay" field="pole" />
-            <Field label="Migrationsdatum" field="migrationsdatum" type="date" />
+            <label style={{ display: "block" }}>
+              <div className="label">Migrationsdatum</div>
+              <DateInputDE value={store.migrationsdatum}
+                onCommit={(iso) => patch("migrationsdatum", iso)} />
+            </label>
             <div>
               <div className="label">ATOS Rollout Ingenieur(e)</div>
               {aktiveUsers.length === 0 ? (

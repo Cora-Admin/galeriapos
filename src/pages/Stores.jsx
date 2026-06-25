@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getMigrationStatus } from "../lib/data.js";
 import { StatusBadge } from "../components/StatusBadge.jsx";
 import { StoreTypBadge, ProblemCount } from "../components/Badges.jsx";
+import { formatDateDE } from "../lib/dates.js";
 
 export default function Stores() {
   const [rows, setRows] = useState(null);
@@ -49,7 +50,7 @@ export default function Stores() {
                 <td style={{ color: "var(--dim)" }}>{r.stadt}</td>
                 <td>{r.anzahl_kassen}</td>
                 <td><StoreTypBadge typ={r.store_typ} /></td>
-                <td style={{ color: "var(--dim)" }}>{r.migrationsdatum || "—"}</td>
+                <td style={{ color: "var(--dim)" }}>{formatDateDE(r.migrationsdatum)}</td>
                 <td><ProblemCount n={Number(r.probleme) || 0} /></td>
                 <td><StatusBadge status={r.status} /></td>
               </tr>
