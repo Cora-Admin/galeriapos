@@ -52,7 +52,7 @@ export default function StoreQuery() {
         <div>
           <div style={{ fontSize: 18, fontWeight: 700 }}>{store.name}</div>
           <div style={{ fontSize: 12, color: "var(--dim)" }}>
-            Storeabfrage · Filiale {store.filiale}
+            Filialabfrage · Filiale {store.filiale}
           </div>
         </div>
         <div style={{ marginLeft: "auto", textAlign: "right" }}>
@@ -65,7 +65,7 @@ export default function StoreQuery() {
 
       {total === 0 ? (
         <div className="panel" style={{ color: "var(--dim)" }}>
-          Noch keine Abfrage-Fragen hinterlegt. Unter „Abfrage" eine Vorlage anlegen.
+          Noch keine Fragen hinterlegt. Unter „Templates → Filialabfrage" eine Vorlage anlegen.
         </div>
       ) : (
         <div style={{ display: "grid", gap: 14 }}>

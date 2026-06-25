@@ -37,7 +37,7 @@ export default function QueryTemplate() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start",
         marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>Vorlage Storeabfrage</div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>Vorlage Filialabfrage</div>
           <div style={{ fontSize: 12, color: "var(--dim)", maxWidth: 560 }}>
             Fragen, die vor der Migration je Filiale beantwortet werden (z. B. Kassenabfrage).
             Diese Vorlage gilt für alle Filialen; die Antworten werden je Filiale erfasst.

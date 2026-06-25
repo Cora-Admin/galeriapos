@@ -1,15 +1,54 @@
-import { useState } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext.jsx";
 import BrandMark from "./BrandMark.jsx";
 
 const NAV = [
   { to: "/", label: "Übersicht", end: true },
   { to: "/stores", label: "Filialen" },
-  { to: "/vorlage", label: "Checkliste" },
-  { to: "/abfrage-vorlage", label: "Abfrage" },
+  { label: "Templates", children: [
+    { to: "/vorlage", label: "Migrationscheckliste" },
+    { to: "/abfrage-vorlage", label: "Filialabfrage" },
+  ] },
   { to: "/users", label: "Users" },
 ];
+
+function NavDropdown({ item }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const loc = useLocation();
+  const active = item.children.some((c) => c.to === loc.pathname);
+
+  useEffect(() => {
+    function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+  useEffect(() => { setOpen(false); }, [loc.pathname]);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button className={"nav-pill" + (active ? " active" : "")} onClick={() => setOpen((o) => !o)}
+        style={{ border: "none", background: active ? undefined : "transparent", cursor: "pointer",
+          font: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
+        {item.label} <span style={{ fontSize: 10 }}>▾</span>
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40,
+          background: "#fff", border: "1px solid var(--line)", borderRadius: 10,
+          boxShadow: "var(--shadow)", padding: 6, minWidth: 210 }}>
+          {item.children.map((c) => (
+            <NavLink key={c.to} to={c.to}
+              className={({ isActive }) => "nav-item-mobile" + (isActive ? " active" : "")}
+              style={{ display: "block", fontSize: 14, padding: "9px 12px" }}>
+              {c.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Layout() {
   const { user, signOut } = useAuth();
@@ -39,8 +78,10 @@ export default function Layout() {
             </div>
           </div>
 
-          <nav className="nav-desktop" style={{ display: "flex", gap: 2, marginLeft: 8 }}>
-            {NAV.map((n) => (
+          <nav className="nav-desktop" style={{ display: "flex", alignItems: "center", gap: 2, marginLeft: 8 }}>
+            {NAV.map((n) => n.children ? (
+              <NavDropdown key={n.label} item={n} />
+            ) : (
               <NavLink key={n.to} to={n.to} end={n.end}
                 className={({ isActive }) => "nav-pill" + (isActive ? " active" : "")}>
                 {n.label}
@@ -67,7 +108,18 @@ export default function Layout() {
 
         {open && (
           <div className="mobile-menu">
-            {NAV.map((n) => (
+            {NAV.map((n) => n.children ? (
+              <div key={n.label}>
+                <div className="label" style={{ padding: "8px 14px 4px" }}>{n.label}</div>
+                {n.children.map((c) => (
+                  <NavLink key={c.to} to={c.to} onClick={() => setOpen(false)}
+                    className={({ isActive }) => "nav-item-mobile" + (isActive ? " active" : "")}
+                    style={{ paddingLeft: 22 }}>
+                    {c.label}
+                  </NavLink>
+                ))}
+              </div>
+            ) : (
               <NavLink key={n.to} to={n.to} end={n.end} onClick={() => setOpen(false)}
                 className={({ isActive }) => "nav-item-mobile" + (isActive ? " active" : "")}>
                 {n.label}

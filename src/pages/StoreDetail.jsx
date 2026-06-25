@@ -7,21 +7,35 @@ import { STORE_TYPEN } from "../components/Badges.jsx";
 import MultiSelect from "../components/MultiSelect.jsx";
 import DateInputDE from "../components/DateInputDE.jsx";
 
+// Rollen der 3 Ansprechpartner je Filiale (Reihenfolge = Position in der Liste).
+const KONTAKT_ROLLEN = ["Filialleiter", "Stellv. Filialleiter", "IT-/Technik-Ansprechpartner"];
+
 export default function StoreDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [store, setStore] = useState(null);
   const [kassen, setKassen] = useState([]);
   const [users, setUsers] = useState([]);
-  const [fortschritt, setFortschritt] = useState({}); // kasseId -> {done,total}
+  const [fortschritt, setFortschritt] = useState({}); // kasseId -> {done,total,probleme}
   const [err, setErr] = useState("");
   const [saved, setSaved] = useState(false);
   const [zusatz, setZusatz] = useState(""); // lokaler Puffer für Zusatzinfos
+  const [kontakte, setKontakte] = useState([]); // lokaler Puffer für Ansprechpartner
 
   useEffect(() => { load(); }, [id]);
 
-  // Zusatzinfos-Puffer einmalig beim Laden der Filiale setzen (nicht bei jedem Patch).
-  useEffect(() => { if (store) setZusatz(store.zusatzinfos || ""); }, [store?.id]);
+  // Lokale Puffer einmalig beim Laden der Filiale setzen (nicht bei jedem Patch).
+  useEffect(() => {
+    if (!store) return;
+    setZusatz(store.zusatzinfos || "");
+    const l = Array.isArray(store.ansprechpartner_liste) ? store.ansprechpartner_liste : [];
+    setKontakte(KONTAKT_ROLLEN.map((rolle, i) => ({
+      rolle,
+      name: l[i]?.name || "",
+      email: l[i]?.email || "",
+      telefon: l[i]?.telefon || "",
+    })));
+  }, [store?.id]);
 
   async function load() {
     try {
@@ -35,7 +49,11 @@ export default function StoreDetail() {
       const fp = {};
       for (const k of ks) {
         const res = await getResults(k.id);
-        fp[k.id] = { done: res.filter((r) => r.erledigt).length, total };
+        fp[k.id] = {
+          done: res.filter((r) => r.erledigt).length,
+          total,
+          probleme: res.filter((r) => r.problem && r.problem.trim()).length,
+        };
       }
       setFortschritt(fp);
     } catch (e) { setErr(e.message); }
@@ -56,6 +74,14 @@ export default function StoreDetail() {
       ? cur.filter((x) => x !== userId)
       : [...cur, userId];
     patch("atos_ingenieure", next);
+  }
+
+  function updateKontakt(i, feld, val) {
+    setKontakte((prev) => prev.map((k, idx) => (idx === i ? { ...k, [feld]: val } : k)));
+  }
+  function saveKontakte() {
+    if (JSON.stringify(kontakte) !== JSON.stringify(store.ansprechpartner_liste || []))
+      patch("ansprechpartner_liste", kontakte);
   }
 
   if (err) return <div className="panel" style={{ color: "var(--coral)" }}>Fehler: {err}</div>;
@@ -85,7 +111,7 @@ export default function StoreDetail() {
         <span style={{ color: "var(--dim)", fontSize: 13 }}>Filiale {store.filiale}</span>
         {saved && <span style={{ color: "var(--accent)", fontSize: 12 }}>✓ gespeichert</span>}
         <button className="btn" style={{ marginLeft: "auto" }}
-          onClick={() => navigate(`/stores/${id}/abfrage`)}>Storeabfrage</button>
+          onClick={() => navigate(`/stores/${id}/abfrage`)}>Filialabfrage</button>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
@@ -104,11 +130,21 @@ export default function StoreDetail() {
               </select>
             </label>
             <div style={{ borderTop: "1px solid var(--line)", paddingTop: 12 }}>
-              <div className="label" style={{ marginBottom: 8 }}>Ansprechpartner</div>
-              <div style={{ display: "grid", gap: 10 }}>
-                <Field label="Name" field="ansprechpartner" />
-                <Field label="E-Mail" field="ansprechpartner_email" type="email" />
-                <Field label="Telefon" field="ansprechpartner_telefon" type="tel" />
+              <div className="label" style={{ marginBottom: 10 }}>Ansprechpartner</div>
+              <div style={{ display: "grid", gap: 16 }}>
+                {kontakte.map((k, i) => (
+                  <div key={i} style={{ display: "grid", gap: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--navy)" }}>{k.rolle}</div>
+                    <input className="input" placeholder="Name" value={k.name}
+                      onChange={(e) => updateKontakt(i, "name", e.target.value)} onBlur={saveKontakte} />
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <input className="input" type="email" placeholder="E-Mail" style={{ flex: "1 1 150px" }}
+                        value={k.email} onChange={(e) => updateKontakt(i, "email", e.target.value)} onBlur={saveKontakte} />
+                      <input className="input" type="tel" placeholder="Telefon" style={{ flex: "1 1 120px" }}
+                        value={k.telefon} onChange={(e) => updateKontakt(i, "telefon", e.target.value)} onBlur={saveKontakte} />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -161,17 +197,24 @@ export default function StoreDetail() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: 12 }}>
           {kassen.map((k) => {
-            const fp = fortschritt[k.id] || { done: 0, total: 0 };
+            const fp = fortschritt[k.id] || { done: 0, total: 0, probleme: 0 };
             const pct = fp.total ? Math.round((fp.done / fp.total) * 100) : 0;
+            const hatProblem = fp.probleme > 0;
             return (
-              <div key={k.id} style={{ background: "var(--bg)", border: "1px solid var(--line)",
-                borderRadius: 10, padding: 14 }}>
+              <div key={k.id} style={{ background: "var(--bg)", borderRadius: 10, padding: 14,
+                border: `1px solid ${hatProblem ? "color-mix(in srgb, var(--coral) 45%, var(--line))" : "var(--line)"}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between",
-                  alignItems: "center", marginBottom: 10 }}>
+                  alignItems: "center", marginBottom: 10, gap: 8 }}>
                   <div style={{ fontWeight: 700, fontSize: 14 }}>Kasse {k.kassen_nr}</div>
-                  <span style={{ fontSize: 12, color: pct === 100 ? "var(--fertig)" : "var(--dim)" }}>
-                    {fp.done}/{fp.total}
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    {hatProblem && (
+                      <span title={`${fp.probleme} gemeldete(s) Problem(e)`}
+                        style={{ color: "var(--coral)", fontSize: 12, fontWeight: 700 }}>⚠ {fp.probleme}</span>
+                    )}
+                    <span style={{ fontSize: 12, color: pct === 100 ? "var(--fertig)" : "var(--dim)" }}>
+                      {fp.done}/{fp.total}
+                    </span>
+                  </div>
                 </div>
                 <div className="bar" style={{ marginBottom: 12 }}>
                   <span style={{ width: `${pct}%`,
