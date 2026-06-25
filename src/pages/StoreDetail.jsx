@@ -4,6 +4,7 @@ import {
   getStore, updateStore, getKassen, getResults, getTemplate, getUsers,
 } from "../lib/data.js";
 import { STORE_TYPEN } from "../components/Badges.jsx";
+import MultiSelect from "../components/MultiSelect.jsx";
 
 export default function StoreDetail() {
   const { id } = useParams();
@@ -114,33 +115,17 @@ export default function StoreDetail() {
             <Field label="POS-HW Bondrucker" field="pos_bondrucker" />
             <Field label="Pole / Kundendisplay" field="pole" />
             <Field label="Migrationsdatum" field="migrationsdatum" type="date" />
-            <label style={{ display: "block" }}>
+            <div>
               <div className="label">ATOS Rollout Ingenieur(e)</div>
               {aktiveUsers.length === 0 ? (
                 <div style={{ fontSize: 12, color: "var(--dim)" }}>
                   Noch keine User angelegt. Unter „Users" hinzufügen.
                 </div>
               ) : (
-                <div style={{ display: "grid", gap: 4, maxHeight: 180, overflow: "auto",
-                  border: "1px solid var(--line)", borderRadius: 6, padding: 8, background: "var(--bg)" }}>
-                  {aktiveUsers.map((u) => (
-                    <label key={u.id} style={{ display: "flex", alignItems: "center", gap: 8,
-                      fontSize: 13, cursor: "pointer", padding: "2px 0" }}>
-                      <input type="checkbox" checked={atos.includes(u.id)}
-                        onChange={() => toggleAtos(u.id)}
-                        style={{ accentColor: "var(--accent)" }} />
-                      <span>{u.name || u.email}</span>
-                      {u.name && <span style={{ color: "var(--dim)", fontSize: 11 }}>{u.email}</span>}
-                    </label>
-                  ))}
-                </div>
+                <MultiSelect users={aktiveUsers} selected={atos} onToggle={toggleAtos}
+                  placeholder="Ingenieur(e) wählen…" />
               )}
-              {atos.length > 0 && (
-                <div style={{ fontSize: 11, color: "var(--dim)", marginTop: 4 }}>
-                  {atos.length} zugeordnet
-                </div>
-              )}
-            </label>
+            </div>
             <Field label="Zusatzinfos" field="zusatzinfos" textarea />
           </div>
         </div>
