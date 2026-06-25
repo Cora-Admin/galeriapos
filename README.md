@@ -109,7 +109,10 @@ src/
 - `checklist_template_groups` / `checklist_template_items` – Checklisten-Vorlage
 - `checklist_results` – abgehakte Punkte pro Kasse (mit Zeitstempel + Bearbeiter,
   je Punkt zusätzlich Freitextfelder `kommentar` und `problem`)
-- `app_users` – Team-/Userverzeichnis (Name, E-Mail, Rolle, aktiv)
+- `app_users` – Team-/Userverzeichnis (Name, E-Mail, Rolle, aktiv, `auth_user_id`)
+- Edge Function `manage-users` – legt echte Supabase-Auth-User mit Passwort an
+  (Service-Role serverseitig, eigene Auth-Prüfung), ändert Passwörter und löscht
+  Login + Verzeichnis. Wird vom Frontend (Userverwaltung) aufgerufen.
 - `store_query_groups` / `store_query_items` / `store_query_answers` – Storeabfrage
   (Vorlage + Antworten je Filiale, analog zur Checkliste)
 - View `store_migration_status` – Fortschritt/Status **und Anzahl Probleme** pro Store

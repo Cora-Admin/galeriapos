@@ -185,6 +185,33 @@ export async function addUser({ email, name, rolle }) {
   return data;
 }
 
+// Legt einen echten Supabase-Auth-User (mit Passwort) an und pflegt das
+// Verzeichnis – via Edge Function (Service-Role, serverseitig).
+async function callManageUsers(payload) {
+  const { data, error } = await supabase.functions.invoke("manage-users", { body: payload });
+  if (error) {
+    // Fehlermeldung aus der Function-Antwort herausziehen, falls vorhanden.
+    let msg = error.message;
+    try { const body = await error.context?.json(); if (body?.error) msg = body.error; } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+export async function createUserAccount({ email, password, name, rolle }) {
+  const data = await callManageUsers({ action: "create", email, password, name, rolle });
+  return data.user;
+}
+
+export async function deleteUserAccount(user) {
+  await callManageUsers({ action: "delete", id: user.id, auth_user_id: user.auth_user_id });
+}
+
+export async function setUserPassword(user, password) {
+  await callManageUsers({ action: "set_password", auth_user_id: user.auth_user_id, password });
+}
+
 export async function updateUser(id, patch) {
   const { data, error } = await supabase
     .from("app_users")
