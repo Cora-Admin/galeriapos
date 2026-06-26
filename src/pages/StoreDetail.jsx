@@ -118,6 +118,10 @@ export default function StoreDetail() {
         <div className="panel">
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>Stammdaten</div>
           <div style={{ display: "grid", gap: 12 }}>
+            <label style={{ display: "block" }}>
+              <div className="label">Filialnummer</div>
+              <input className="input" value={store.filiale || ""} readOnly disabled />
+            </label>
             <Field label="Filialname" field="name" />
             <Field label="Stadt" field="stadt" />
             <Field label="Adresse" field="adresse" />
