@@ -26,6 +26,14 @@ export function AuthProvider({ children }) {
     loading,
     signIn: (email, password) =>
       supabase.auth.signInWithPassword({ email, password }),
+    signInWithMicrosoft: () =>
+      supabase.auth.signInWithOAuth({
+        provider: "azure",
+        options: {
+          scopes: "email openid profile",
+          redirectTo: window.location.origin,
+        },
+      }),
     signUp: (email, password) =>
       supabase.auth.signUp({ email, password }),
     signOut: () => supabase.auth.signOut(),
