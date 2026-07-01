@@ -4,7 +4,7 @@ import { useAuth } from "../lib/AuthContext.jsx";
 import BrandMark from "../components/BrandMark.jsx";
 
 export default function Login() {
-  const { signIn, resetPassword } = useAuth();
+  const { signIn, resetPassword, signInWithMicrosoft } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,6 +19,16 @@ export default function Login() {
     setBusy(false);
     if (error) setError("Anmeldung fehlgeschlagen: " + error.message);
     else navigate("/");
+  }
+
+  async function handleMicrosoft() {
+    setError(""); setInfo(""); setBusy(true);
+    const { error } = await signInWithMicrosoft();
+    // Bei Erfolg leitet Supabase zum Microsoft-Login weiter; nur Fehler behandeln.
+    if (error) {
+      setBusy(false);
+      setError("Microsoft-Anmeldung fehlgeschlagen: " + error.message);
+    }
   }
 
   async function handleReset() {
@@ -67,6 +77,25 @@ export default function Login() {
         <button type="button" className="btn btn-ghost" style={{ width: "100%", marginTop: 8 }}
           onClick={handleReset} disabled={busy}>
           Passwort vergessen?
+        </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "18px 0" }}>
+          <div style={{ flex: 1, height: 1, background: "var(--border, rgba(0,0,0,.12))" }} />
+          <div style={{ fontSize: 11, color: "var(--dim)", fontWeight: 600,
+            textTransform: "uppercase", letterSpacing: ".06em" }}>oder</div>
+          <div style={{ flex: 1, height: 1, background: "var(--border, rgba(0,0,0,.12))" }} />
+        </div>
+
+        <button type="button" className="btn btn-ghost"
+          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}
+          onClick={handleMicrosoft} disabled={busy}>
+          <svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true">
+            <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+            <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+            <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+            <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+          </svg>
+          Mit Microsoft anmelden
         </button>
       </form>
     </div>
