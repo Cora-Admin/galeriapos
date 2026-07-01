@@ -4,7 +4,7 @@ import { useAuth } from "../lib/AuthContext.jsx";
 import BrandMark from "../components/BrandMark.jsx";
 
 export default function Login() {
-  const { signIn, resetPassword, signInWithMicrosoft } = useAuth();
+  const { signIn, resetPassword, signInWithMicrosoft, authError, clearAuthError } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +22,7 @@ export default function Login() {
   }
 
   async function handleMicrosoft() {
-    setError(""); setInfo(""); setBusy(true);
+    setError(""); setInfo(""); clearAuthError(); setBusy(true);
     const { error } = await signInWithMicrosoft();
     // Bei Erfolg leitet Supabase zum Microsoft-Login weiter; nur Fehler behandeln.
     if (error) {
@@ -68,7 +68,7 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
         </div>
 
-        {error && <div style={{ color: "var(--coral)", fontSize: 13, marginBottom: 12 }}>{error}</div>}
+        {(error || authError) && <div style={{ color: "var(--coral)", fontSize: 13, marginBottom: 12 }}>{error || authError}</div>}
         {info && <div style={{ color: "var(--accent)", fontSize: 13, marginBottom: 12 }}>{info}</div>}
 
         <button className="btn btn-primary" style={{ width: "100%" }} disabled={busy}>
