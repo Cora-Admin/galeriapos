@@ -5,7 +5,7 @@
   --green: #cde6c2;       /* Marken-Salbeigrün */
   --green-600: #2f9e6f;   /* nutzbares Grün für Akzente */
 
-  --bg: #eef2f7;          /* App-Hintergrund (kühles Hellgrau-Blau) */
+  --bg: #cde6c2;          /* App-Hintergrund (Marken-Salbeigrün) */
   --panel: #ffffff;       /* Karten */
   --panel2: #f1f5f9;      /* sekundär / Hover */
   --line: #e3e8ef;        /* Rahmen */
@@ -37,7 +37,7 @@ html, body { margin: 0; background: var(--bg); color: var(--text);
 body {
   background-color: var(--bg);
   background-image:
-    linear-gradient(rgba(238, 242, 247, 0.90), rgba(238, 242, 247, 0.90)),
+    linear-gradient(rgba(205, 230, 194, 0.90), rgba(205, 230, 194, 0.90)),
     url("/galeria-bg.svg");
   background-repeat: no-repeat;
   background-size: cover;
