@@ -1,7 +1,7 @@
 # Deployment einrichten – „auf Knopfdruck"
 
 Ziel: Push auf `main` → GitHub Actions baut die App und veröffentlicht sie
-automatisch unter **pos.everstore.consulting** auf deiner EC2 (52.29.185.200).
+automatisch unter **galeria.everstore.consulting** auf deiner EC2 (52.29.185.200).
 
 Die Pipeline nutzt dieselbe Methode wie deine landingpage (appleboy scp/ssh +
 Deploy-Key). Vieles davon hast du also schon einmal gemacht.
@@ -31,7 +31,7 @@ Ohne diesen Schritt kann sich niemand einloggen.
   damit keine offene Registrierung möglich ist.
 - **Authentication → Users → Add user**: für jedes Teammitglied E-Mail + Passwort.
 - **Authentication → URL Configuration → Redirect URLs**:
-  `https://pos.everstore.consulting/**` eintragen (für Passwort-Reset-Links).
+  `https://galeria.everstore.consulting/**` eintragen (für Passwort-Reset-Links).
 
 ## 2. GitHub-Repo
 
@@ -91,7 +91,7 @@ Repo → **Settings → Secrets and variables → Actions → New repository sec
 
 Im Cloudflare-Dashboard der Zone `everstore.consulting`:
 
-- **A-Record**: Name `pos`, IPv4 `52.29.185.200`, Proxy aktiv (orange Wolke).
+- **A-Record**: Name `galeria`, IPv4 `52.29.185.200`, Proxy aktiv (orange Wolke).
 
 ## 6. Nginx auf der EC2 aktivieren
 
@@ -120,7 +120,7 @@ git push
 
 …oder in GitHub unter **Actions → Deploy POS Cockpit → Run workflow** den Button drücken.
 
-Nach ~1–2 Minuten ist die App live unter https://pos.everstore.consulting
+Nach ~1–2 Minuten ist die App live unter https://galeria.everstore.consulting
 
 ---
 

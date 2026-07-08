@@ -24,7 +24,7 @@ Row-Level-Security (RLS) geschützt. Der `service_role`-Key gehört NIEMALS ins 
 3. Nutzer anlegen unter **Authentication → Users → Add user**
    (E-Mail + Passwort vergeben). Diese Konten können sich dann anmelden.
 4. **URL Configuration**: unter "Redirect URLs" die produktive Domain eintragen
-   (z. B. `https://pos.everstore.consulting`), damit Passwort-Reset-Links funktionieren.
+   (z. B. `https://galeria.everstore.consulting`), damit Passwort-Reset-Links funktionieren.
 
 > Hinweis: Aktuell darf jeder eingeloggte Nutzer alle Stores lesen und schreiben.
 > Rollenrechte (z. B. Steering-Board nur lesen) lassen sich später über
@@ -54,7 +54,7 @@ sudo rsync -a --delete dist/ /var/www/pos-cockpit/
 ```nginx
 server {
     listen 80;
-    server_name pos.everstore.consulting;
+    server_name galeria.everstore.consulting;
 
     root /var/www/pos-cockpit;
     index index.html;
