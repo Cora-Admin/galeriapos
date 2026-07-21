@@ -32,16 +32,15 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
-      - name: dist/ auf die EC2 übertragen
+      - name: dist/ und nginx-Config auf die EC2 übertragen
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "dist/*"
+          source: "dist/*,deploy/nginx-pos-cockpit.conf"
           target: "/tmp/pos-cockpit-deploy"
           rm: true
-          strip_components: 1
 
       - name: Auf der EC2 veröffentlichen
         uses: appleboy/ssh-action@v1.0.3
@@ -50,9 +49,22 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
+
+            # 1) Statische App-Dateien veröffentlichen
             sudo mkdir -p /var/www/pos-cockpit
             sudo rm -rf /var/www/pos-cockpit/*
-            sudo cp -r /tmp/pos-cockpit-deploy/* /var/www/pos-cockpit/
+            sudo cp -r /tmp/pos-cockpit-deploy/dist/* /var/www/pos-cockpit/
             sudo chown -R www-data:www-data /var/www/pos-cockpit
+
+            # 2) nginx-Config aus dem Repo ausrollen und aktivieren.
+            #    Nur mit cp (per NOPASSWD-sudo erlaubt) – kein mv/ln nötig.
+            #    Direkt nach sites-enabled kopieren = aktiviert, ohne Symlink.
+            sudo mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
+            sudo cp /tmp/pos-cockpit-deploy/deploy/nginx-pos-cockpit.conf /etc/nginx/sites-available/pos-cockpit
+            sudo cp /tmp/pos-cockpit-deploy/deploy/nginx-pos-cockpit.conf /etc/nginx/sites-enabled/pos-cockpit
+
+            # 3) Aufräumen und nginx neu laden. reload ist graceful:
+            #    bei fehlerhafter Config bleibt die alte aktiv.
             rm -rf /tmp/pos-cockpit-deploy
             sudo systemctl reload nginx
