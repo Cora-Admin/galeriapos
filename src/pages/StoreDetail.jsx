@@ -19,6 +19,20 @@ function kasseName(k) {
   return `Kasse ${k.kassen_nr}${zusatz ? ` - ${zusatz}` : ""}`;
 }
 
+// Klickbarer Panel-Kopf zum Ein-/Ausklappen des Panel-Inhalts.
+function CollapseHeader({ title, open, onToggle }) {
+  return (
+    <button type="button" onClick={onToggle}
+      style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 8, background: "none", border: "none", padding: 0, cursor: "pointer",
+        fontWeight: 700, fontSize: 14, color: "var(--text)", marginBottom: open ? 14 : 0 }}>
+      <span>{title}</span>
+      <span style={{ color: "var(--dim)", fontSize: 12,
+        transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }}>▾</span>
+    </button>
+  );
+}
+
 export default function StoreDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -34,6 +48,8 @@ export default function StoreDetail() {
   const [abfrage, setAbfrage] = useState([]); // Filialabfrage-Vorlage (Gruppen + Fragen)
   const [antworten, setAntworten] = useState({}); // item_id -> Antwort (live edit)
   const antwortenSaved = useRef({}); // item_id -> zuletzt gespeicherte Antwort
+  const [openStamm, setOpenStamm] = useState(true); // Panel „Stammdaten" ein-/ausgeklappt
+  const [openPos, setOpenPos] = useState(true); // Panel „POS Hardware & Migration" ein-/ausgeklappt
 
   useEffect(() => { load(); }, [id]);
 
@@ -149,7 +165,9 @@ export default function StoreDetail() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
         <div className="panel">
-          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>Stammdaten</div>
+          <CollapseHeader title="Stammdaten" open={openStamm}
+            onToggle={() => setOpenStamm((o) => !o)} />
+          {openStamm && (
           <div style={{ display: "grid", gap: 12 }}>
             <label style={{ display: "block" }}>
               <div className="label">Filialnummer</div>
@@ -185,10 +203,13 @@ export default function StoreDetail() {
               </div>
             </div>
           </div>
+          )}
         </div>
 
         <div className="panel">
-          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>POS Hardware & Migration</div>
+          <CollapseHeader title="POS Hardware & Migration" open={openPos}
+            onToggle={() => setOpenPos((o) => !o)} />
+          {openPos && (
           <div style={{ display: "grid", gap: 12 }}>
             <label style={{ display: "block" }}>
               <div className="label">Migrationsdatum</div>
@@ -255,6 +276,7 @@ export default function StoreDetail() {
               )}
             </div>
           </div>
+          )}
         </div>
       </div>
 
