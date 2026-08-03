@@ -190,8 +190,6 @@ export default function StoreDetail() {
         <div className="panel">
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>POS Hardware & Migration</div>
           <div style={{ display: "grid", gap: 12 }}>
-            <Field label="POS-HW Bondrucker" field="pos_bondrucker" />
-            <Field label="Pole / Kundendisplay" field="pole" />
             <label style={{ display: "block" }}>
               <div className="label">Migrationsdatum</div>
               <DateInputDE value={store.migrationsdatum}
@@ -224,6 +222,37 @@ export default function StoreDetail() {
                   disabled={zusatz === (store.zusatzinfos || "")}
                   onClick={() => patch("zusatzinfos", zusatz)}>Speichern</button>
               </div>
+            </div>
+
+            <div>
+              <div className="label">Filialabfrage</div>
+              {abfrageTotal === 0 ? (
+                <div style={{ fontSize: 12, color: "var(--dim)" }}>
+                  Noch keine Fragen hinterlegt. Unter „Templates → Filialabfrage" eine Vorlage anlegen.
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 16 }}>
+                  {abfrage.map((g) => (
+                    <div key={g.id}>
+                      <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, color: "var(--accent)" }}>
+                        {g.titel}
+                      </div>
+                      <div style={{ display: "grid", gap: 12 }}>
+                        {g.items.map((item) => (
+                          <label key={item.id} style={{ display: "block" }}>
+                            <div style={{ fontSize: 13, marginBottom: 6 }}>{item.frage}</div>
+                            <textarea className="input" rows={2} style={{ resize: "vertical" }}
+                              placeholder="Antwort…"
+                              value={antworten[item.id] || ""}
+                              onChange={(e) => onAntwortChange(item.id, e.target.value)}
+                              onBlur={(e) => saveAntwort(item.id, e.target.value)} />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -266,40 +295,6 @@ export default function StoreDetail() {
             );
           })}
         </div>
-      </div>
-
-      <div className="panel" style={{ marginTop: 18 }}>
-        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>Filialabfrage</div>
-        <div style={{ fontSize: 12, color: "var(--dim)", marginBottom: 14 }}>
-          Fragen zur Vorbereitung der Migration – Antworten werden automatisch gespeichert.
-        </div>
-        {abfrageTotal === 0 ? (
-          <div style={{ fontSize: 13, color: "var(--dim)" }}>
-            Noch keine Fragen hinterlegt. Unter „Templates → Filialabfrage" eine Vorlage anlegen.
-          </div>
-        ) : (
-          <div style={{ display: "grid", gap: 18 }}>
-            {abfrage.map((g) => (
-              <div key={g.id}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, color: "var(--accent)" }}>
-                  {g.titel}
-                </div>
-                <div style={{ display: "grid", gap: 12 }}>
-                  {g.items.map((item) => (
-                    <label key={item.id} style={{ display: "block" }}>
-                      <div style={{ fontSize: 13, marginBottom: 6 }}>{item.frage}</div>
-                      <textarea className="input" rows={2} style={{ resize: "vertical" }}
-                        placeholder="Antwort…"
-                        value={antworten[item.id] || ""}
-                        onChange={(e) => onAntwortChange(item.id, e.target.value)}
-                        onBlur={(e) => saveAntwort(item.id, e.target.value)} />
-                    </label>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
