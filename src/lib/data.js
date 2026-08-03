@@ -52,6 +52,18 @@ export async function getKassen(storeId) {
   return data;
 }
 
+// Aktualisiert Kassen-Stammdaten (z. B. Standort, Etage, Bezeichnung).
+export async function updateKasse(id, patch) {
+  const { data, error } = await supabase
+    .from("kassen")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 // ---------- Checklisten-Vorlage ----------
 export async function getTemplate() {
   const { data: groups, error: e1 } = await supabase
