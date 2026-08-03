@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   getStore, updateStore, getKassen, getResults, getTemplate, getUsers,
+  getQueryTemplate, getQueryAnswers, setQueryAnswer,
 } from "../lib/data.js";
+import { useAuth } from "../lib/AuthContext.jsx";
 import { STORE_TYPEN } from "../components/Badges.jsx";
 import MultiSelect from "../components/MultiSelect.jsx";
 import DateInputDE from "../components/DateInputDE.jsx";
@@ -20,6 +22,7 @@ function kasseName(k) {
 export default function StoreDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [store, setStore] = useState(null);
   const [kassen, setKassen] = useState([]);
   const [users, setUsers] = useState([]);
@@ -28,6 +31,9 @@ export default function StoreDetail() {
   const [saved, setSaved] = useState(false);
   const [zusatz, setZusatz] = useState(""); // lokaler Puffer für Zusatzinfos
   const [kontakte, setKontakte] = useState([]); // lokaler Puffer für Ansprechpartner
+  const [abfrage, setAbfrage] = useState([]); // Filialabfrage-Vorlage (Gruppen + Fragen)
+  const [antworten, setAntworten] = useState({}); // item_id -> Antwort (live edit)
+  const antwortenSaved = useRef({}); // item_id -> zuletzt gespeicherte Antwort
 
   useEffect(() => { load(); }, [id]);
 
@@ -63,6 +69,27 @@ export default function StoreDetail() {
         };
       }
       setFortschritt(fp);
+
+      // Filialabfrage (Vorlage + Antworten dieser Filiale) laden.
+      setAbfrage(await getQueryTemplate());
+      const ans = await getQueryAnswers(id);
+      const amap = {};
+      ans.forEach((a) => { amap[a.item_id] = a.antwort || ""; });
+      setAntworten(amap);
+      antwortenSaved.current = { ...amap };
+    } catch (e) { setErr(e.message); }
+  }
+
+  // Filialabfrage: lokale Eingabe, Speichern beim Verlassen des Feldes.
+  function onAntwortChange(itemId, val) {
+    setAntworten((prev) => ({ ...prev, [itemId]: val }));
+  }
+  async function saveAntwort(itemId, val) {
+    if ((val || "") === (antwortenSaved.current[itemId] || "")) return;
+    antwortenSaved.current[itemId] = val;
+    try {
+      await setQueryAnswer(id, itemId, val, user?.email || null);
+      setSaved(true); setTimeout(() => setSaved(false), 1200);
     } catch (e) { setErr(e.message); }
   }
 
@@ -109,6 +136,7 @@ export default function StoreDetail() {
 
   const aktiveUsers = users.filter((u) => u.aktiv);
   const atos = store.atos_ingenieure || [];
+  const abfrageTotal = abfrage.reduce((a, g) => a + g.items.length, 0);
 
   return (
     <div>
@@ -238,6 +266,40 @@ export default function StoreDetail() {
             );
           })}
         </div>
+      </div>
+
+      <div className="panel" style={{ marginTop: 18 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>Filialabfrage</div>
+        <div style={{ fontSize: 12, color: "var(--dim)", marginBottom: 14 }}>
+          Fragen zur Vorbereitung der Migration – Antworten werden automatisch gespeichert.
+        </div>
+        {abfrageTotal === 0 ? (
+          <div style={{ fontSize: 13, color: "var(--dim)" }}>
+            Noch keine Fragen hinterlegt. Unter „Templates → Filialabfrage" eine Vorlage anlegen.
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: 18 }}>
+            {abfrage.map((g) => (
+              <div key={g.id}>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, color: "var(--accent)" }}>
+                  {g.titel}
+                </div>
+                <div style={{ display: "grid", gap: 12 }}>
+                  {g.items.map((item) => (
+                    <label key={item.id} style={{ display: "block" }}>
+                      <div style={{ fontSize: 13, marginBottom: 6 }}>{item.frage}</div>
+                      <textarea className="input" rows={2} style={{ resize: "vertical" }}
+                        placeholder="Antwort…"
+                        value={antworten[item.id] || ""}
+                        onChange={(e) => onAntwortChange(item.id, e.target.value)}
+                        onBlur={(e) => saveAntwort(item.id, e.target.value)} />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
