@@ -1,17 +1,31 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getStore, getTemplate, getResults, setResult, setResultText } from "../lib/data.js";
+import {
+  getStore, getKasse, updateKasse, getTemplate, getResults, setResult, setResultText,
+} from "../lib/data.js";
 import { useAuth } from "../lib/AuthContext.jsx";
+
+// Editierbare Hardware-Felder im Kopf der Checkliste (pro Kasse).
+const HW_FELDER = [
+  { key: "bon_drucker", label: "Bon-Drucker" },
+  { key: "scanner", label: "Scanner" },
+  { key: "kassenlade", label: "Kassenlade" },
+  { key: "lan", label: "LAN" },
+  { key: "neuer_hardwaretyp", label: "Neuer Hardwaretyp" },
+];
 
 export default function Checklist() {
   const { id, kasseId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [store, setStore] = useState(null);
+  const [kasse, setKasse] = useState(null);
   const [template, setTemplate] = useState([]);
   const [results, setResults] = useState({}); // item_id -> erledigt
   const [texts, setTexts] = useState({}); // item_id -> { kommentar, problem } (live edit)
   const saved = useRef({}); // item_id -> { kommentar, problem } zuletzt gespeichert
+  const kassePersisted = useRef({}); // zuletzt gespeicherte Hardware-Felder der Kasse
+  const [kasseSaved, setKasseSaved] = useState(false);
   const [err, setErr] = useState("");
 
   useEffect(() => { load(); }, [kasseId]);
@@ -19,6 +33,10 @@ export default function Checklist() {
   async function load() {
     try {
       setStore(await getStore(id));
+      const k = await getKasse(kasseId);
+      setKasse(k);
+      kassePersisted.current = [...HW_FELDER.map((f) => f.key), "bemerkungen"]
+        .reduce((a, key) => ({ ...a, [key]: k[key] || "" }), {});
       setTemplate(await getTemplate());
       const res = await getResults(kasseId);
       const map = {};
@@ -30,6 +48,23 @@ export default function Checklist() {
       setResults(map);
       setTexts(txt);
       saved.current = JSON.parse(JSON.stringify(txt));
+    } catch (e) { setErr(e.message); }
+  }
+
+  // Lokale (sofortige) Bearbeitung eines Kassen-Feldes.
+  function onKasseChange(field, val) {
+    setKasse((prev) => ({ ...prev, [field]: val }));
+  }
+
+  // Beim Verlassen des Feldes speichern, sofern sich der Wert geändert hat.
+  async function saveKasse(field, rawVal) {
+    const val = (rawVal || "").trim();
+    if ((kassePersisted.current[field] || "") === val) return;
+    kassePersisted.current[field] = val;
+    setKasse((prev) => ({ ...prev, [field]: val }));
+    try {
+      await updateKasse(kasseId, { [field]: val || null });
+      setKasseSaved(true); setTimeout(() => setKasseSaved(false), 1200);
     } catch (e) { setErr(e.message); }
   }
 
@@ -61,19 +96,20 @@ export default function Checklist() {
   }
 
   if (err) return <div className="panel" style={{ color: "var(--coral)" }}>Fehler: {err}</div>;
-  if (!store) return <div style={{ color: "var(--dim)" }}>Lädt…</div>;
+  if (!store || !kasse) return <div style={{ color: "var(--dim)" }}>Lädt…</div>;
 
   const total = template.reduce((a, g) => a + g.items.length, 0);
   const done = Object.values(results).filter(Boolean).length;
   const pct = total ? Math.round((done / total) * 100) : 0;
-  const kasseNr = kasseId; // Anzeige unten via store-Kontext nicht nötig
+  const kasseTitel = `Kasse ${kasse.kassen_nr}`
+    + [kasse.standort, kasse.etage].filter(Boolean).map((x) => ` · ${x}`).join("");
 
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
         <button className="btn btn-ghost" onClick={() => navigate(`/stores/${id}`)}>← Zurück</button>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{store.name}</div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>{store.name} · {kasseTitel}</div>
           <div style={{ fontSize: 12, color: "var(--dim)" }}>
             POS Installations-Checkliste · {store.migrationsdatum || "kein Datum"}
           </div>
@@ -82,6 +118,31 @@ export default function Checklist() {
           <div style={{ fontSize: 24, fontWeight: 800,
             color: pct === 100 ? "var(--fertig)" : "var(--accent)" }}>{pct}%</div>
           <div style={{ fontSize: 11, color: "var(--dim)" }}>{done} von {total}</div>
+        </div>
+      </div>
+
+      <div className="panel" style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>Kassen-Hardware</div>
+          {kasseSaved && <span style={{ color: "var(--accent)", fontSize: 12 }}>✓ gespeichert</span>}
+        </div>
+        <div style={{ display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
+          {HW_FELDER.map((f) => (
+            <label key={f.key} style={{ display: "block" }}>
+              <div className="label">{f.label}</div>
+              <input className="input" value={kasse[f.key] || ""}
+                onChange={(e) => onKasseChange(f.key, e.target.value)}
+                onBlur={(e) => saveKasse(f.key, e.target.value)} />
+            </label>
+          ))}
+          <label style={{ display: "block", gridColumn: "1 / -1" }}>
+            <div className="label">Bemerkungen</div>
+            <textarea className="input" style={{ minHeight: 60, resize: "vertical" }}
+              value={kasse.bemerkungen || ""}
+              onChange={(e) => onKasseChange("bemerkungen", e.target.value)}
+              onBlur={(e) => saveKasse("bemerkungen", e.target.value)} />
+          </label>
         </div>
       </div>
 
