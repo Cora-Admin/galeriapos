@@ -137,3 +137,58 @@ git push
 Das ist der „Knopfdruck". Die Pipeline baut und veröffentlicht automatisch.
 Über **Actions → Run workflow** kannst du zusätzlich jederzeit manuell deployen,
 ohne etwas zu ändern.
+
+---
+
+# Alternative: Deployment auf Vercel
+
+Statt EC2/Nginx kann die App auch auf **Vercel** laufen. Vercel erkennt Vite
+automatisch, baut mit `npm run build` und liefert `dist/` aus. SPA-Routing
+(Reload auf `/stores/:id` etc.) wird über die mitgelieferte `vercel.json`
+(Rewrite aller Pfade auf `/index.html`) sichergestellt.
+
+## Einmalige Schritte
+
+1. **Projekt importieren**: auf [vercel.com](https://vercel.com) einloggen →
+   **Add New… → Project** → das GitHub-Repo `Cora-Admin/galeriapos` auswählen.
+   Framework „Vite", Build Command `npm run build`, Output `dist` werden
+   automatisch erkannt (durch `vercel.json` bereits gesetzt).
+
+2. **Environment Variables** (Project → Settings → Environment Variables) für
+   **Production** (und Preview) hinterlegen – dieselben Werte wie bisher:
+
+   | Name | Wert |
+   |------|------|
+   | `VITE_SUPABASE_URL` | `https://vcdxucuwndifgszxbtcl.supabase.co` |
+   | `VITE_SUPABASE_ANON_KEY` | `sb_publishable_5oHzh_ghI8rJKSYwnB7bHQ_9p5Y1uaP` |
+
+   > Wichtig: Vite-Variablen werden zur **Build-Zeit** eingebacken. Nach dem
+   > Setzen/Ändern der Variablen einmal neu deployen (Redeploy).
+
+3. **Supabase-Redirect-URLs anpassen** (Supabase → Authentication →
+   URL Configuration), damit Microsoft-Login und Passwort-Reset auf der neuen
+   Domain funktionieren (die App nutzt `window.location.origin` als `redirectTo`):
+   - **Site URL**: die Vercel-Produktions-Domain, z. B.
+     `https://galeriapos.vercel.app` (oder die eigene Domain).
+   - **Redirect URLs**: zusätzlich `https://<projekt>.vercel.app/**` und – falls
+     Preview-Deployments genutzt werden – `https://*.vercel.app/**`.
+
+   Die Azure-/Microsoft-App-Registrierung muss **nicht** geändert werden: deren
+   Callback zeigt auf `https://vcdxucuwndifgszxbtcl.supabase.co/auth/v1/callback`
+   (Supabase), das bleibt gleich.
+
+4. **Eigene Domain** (optional): Project → Settings → Domains → Domain hinzufügen
+   und den bei Vercel angezeigten DNS-Eintrag (CNAME bzw. A) in Cloudflare setzen.
+   Danach diese Domain auch als Site-/Redirect-URL in Supabase eintragen.
+
+## Alltag
+
+Jeder Push auf `main` löst automatisch ein Vercel-Production-Deployment aus;
+Pull Requests/Branches erhalten automatisch Preview-Deployments.
+
+## Altes EC2-Deployment abschalten (empfohlen)
+
+Damit nicht beide Pipelines gleichzeitig laufen, den GitHub-Actions-Workflow
+`.github/workflows/deploy.yml` deaktivieren – entweder die Datei löschen oder den
+Trigger `on: push: branches: [main]` entfernen (nur noch `workflow_dispatch`),
+sodass EC2 nur manuell deployt wird.
