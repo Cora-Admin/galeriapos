@@ -117,8 +117,6 @@ export default function StoreDetail() {
         <div style={{ fontSize: 18, fontWeight: 700 }}>{store.name}</div>
         <span style={{ color: "var(--dim)", fontSize: 13 }}>Filiale {store.filiale}</span>
         {saved && <span style={{ color: "var(--accent)", fontSize: 12 }}>✓ gespeichert</span>}
-        <button className="btn" style={{ marginLeft: "auto" }}
-          onClick={() => navigate(`/stores/${id}/abfrage`)}>Filialabfrage</button>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
