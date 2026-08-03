@@ -52,7 +52,17 @@ export async function getKassen(storeId) {
   return data;
 }
 
-// Aktualisiert Kassen-Stammdaten (z. B. Standort, Etage, Bezeichnung).
+export async function getKasse(id) {
+  const { data, error } = await supabase
+    .from("kassen")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// Aktualisiert Kassen-Stammdaten (z. B. Standort, Etage, Bezeichnung, Hardware).
 export async function updateKasse(id, patch) {
   const { data, error } = await supabase
     .from("kassen")
