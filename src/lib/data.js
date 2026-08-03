@@ -165,7 +165,17 @@ export async function setResultText(kasseId, itemId, patch) {
   return data;
 }
 
-// ---------- Userverwaltung (Team-Verzeichnis) ----------
+// ---------- Userverwaltung ----------
+// Einheitliche Userverwaltung über Supabase Auth: `getAuthUsers()` liefert die
+// in Supabase Auth hinterlegten User (Quelle der Wahrheit) für die Userübersicht.
+// `getUsers()` liest das Verzeichnis `app_users` und dient der ATOS-Ingenieur-
+// Zuordnung der Filialen (stabile id je User, inkl. evtl. reiner Verzeichnis-
+// einträge ohne Login).
+export async function getAuthUsers() {
+  const data = await callManageUsers({ action: "list" });
+  return data.users;
+}
+
 export async function getUsers() {
   const { data, error } = await supabase
     .from("app_users")
@@ -175,18 +185,8 @@ export async function getUsers() {
   return data;
 }
 
-export async function addUser({ email, name, rolle }) {
-  const { data, error } = await supabase
-    .from("app_users")
-    .insert({ email, name, rolle })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-// Legt einen echten Supabase-Auth-User (mit Passwort) an und pflegt das
-// Verzeichnis – via Edge Function (Service-Role, serverseitig).
+// Ruft die Edge Function `manage-users` (Service-Role, serverseitig) auf.
+// Neue User werden ausschließlich in Supabase Auth angelegt – nicht aus der App.
 async function callManageUsers(payload) {
   const { data, error } = await supabase.functions.invoke("manage-users", { body: payload });
   if (error) {
@@ -197,11 +197,6 @@ async function callManageUsers(payload) {
   }
   if (data?.error) throw new Error(data.error);
   return data;
-}
-
-export async function createUserAccount({ email, password, name, rolle }) {
-  const data = await callManageUsers({ action: "create", email, password, name, rolle });
-  return data.user;
 }
 
 export async function deleteUserAccount(user) {

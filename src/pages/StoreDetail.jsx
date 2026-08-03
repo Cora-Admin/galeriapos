@@ -168,7 +168,8 @@ export default function StoreDetail() {
               <div className="label">ATOS Rollout Ingenieur(e)</div>
               {aktiveUsers.length === 0 ? (
                 <div style={{ fontSize: 12, color: "var(--dim)" }}>
-                  Noch keine User angelegt. Unter „Users" hinzufügen.
+                  Noch keine aktiven User vorhanden. User werden in Supabase Auth angelegt
+                  und erscheinen anschließend unter „Users".
                 </div>
               ) : (
                 <MultiSelect users={aktiveUsers} selected={atos} onToggle={toggleAtos}

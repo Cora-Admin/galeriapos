@@ -67,8 +67,8 @@ export function AuthProvider({ children }) {
           redirectTo: window.location.origin,
         },
       }),
-    signUp: (email, password) =>
-      supabase.auth.signUp({ email, password }),
+    // Bewusst keine Registrierung: neue User werden ausschließlich in Supabase
+    // Auth angelegt, nicht aus der App heraus.
     signOut: () => supabase.auth.signOut(),
     resetPassword: (email) =>
       supabase.auth.resetPasswordForEmail(email, {
