@@ -96,7 +96,7 @@ src/
     StoreQuery.jsx     Storeabfrage je Filiale beantworten
     Template.jsx       Vorlage Checkliste
     QueryTemplate.jsx  Vorlage Storeabfrage
-    Users.jsx          Userverwaltung (Team-Verzeichnis)
+    Users.jsx          Userverwaltung (zeigt die Supabase-Auth-User)
     Import.jsx         Excel-/CSV-Import Kassenliste (SheetJS, lazy)
 ```
 
@@ -109,10 +109,15 @@ src/
 - `checklist_template_groups` / `checklist_template_items` – Checklisten-Vorlage
 - `checklist_results` – abgehakte Punkte pro Kasse (mit Zeitstempel + Bearbeiter,
   je Punkt zusätzlich Freitextfelder `kommentar` und `problem`)
-- `app_users` – Team-/Userverzeichnis (Name, E-Mail, Rolle, aktiv, `auth_user_id`)
-- Edge Function `manage-users` – legt echte Supabase-Auth-User mit Passwort an
-  (Service-Role serverseitig, eigene Auth-Prüfung), ändert Passwörter und löscht
-  Login + Verzeichnis. Wird vom Frontend (Userverwaltung) aufgerufen.
+- `app_users` – Verzeichnis mit Metadaten je User (Name, E-Mail, Rolle, aktiv,
+  `auth_user_id`). Dient als stabile Referenz für die ATOS-Ingenieur-Zuordnung der
+  Filialen. **Quelle der Wahrheit für die Userübersicht ist Supabase Auth** – die
+  Edge Function pflegt für jeden Auth-User automatisch eine Verzeichniszeile.
+- Edge Function `manage-users` – einheitliche Userverwaltung über Supabase Auth
+  (Service-Role serverseitig, eigene Auth-Prüfung): `list` liefert die in Supabase
+  Auth hinterlegten User (inkl. Metadaten), ändert Passwörter (`set_password`) und
+  löscht Login + Verzeichniszeile (`delete`). **Neue User werden ausschließlich in
+  Supabase Auth angelegt (Authentication → Users), nicht aus der App.**
 - `store_query_groups` / `store_query_items` / `store_query_answers` – Storeabfrage
   (Vorlage + Antworten je Filiale, analog zur Checkliste)
 - View `store_migration_status` – Fortschritt/Status **und Anzahl Probleme** pro Store
