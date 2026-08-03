@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  getStore, updateStore, getKassen, getResults, getTemplate, getUsers,
+  getStore, updateStore, getKassen, updateKasse, getResults, getTemplate, getUsers,
 } from "../lib/data.js";
 import { STORE_TYPEN } from "../components/Badges.jsx";
 import MultiSelect from "../components/MultiSelect.jsx";
@@ -21,6 +21,7 @@ export default function StoreDetail() {
   const [saved, setSaved] = useState(false);
   const [zusatz, setZusatz] = useState(""); // lokaler Puffer für Zusatzinfos
   const [kontakte, setKontakte] = useState([]); // lokaler Puffer für Ansprechpartner
+  const kassenPersisted = useRef({}); // kasseId -> zuletzt gespeicherte {standort,etage}
 
   useEffect(() => { load(); }, [id]);
 
@@ -44,6 +45,9 @@ export default function StoreDetail() {
       setUsers(await getUsers());
       const ks = await getKassen(id);
       setKassen(ks);
+      kassenPersisted.current = Object.fromEntries(
+        ks.map((k) => [k.id, { standort: k.standort || "", etage: k.etage || "" }])
+      );
       const tpl = await getTemplate();
       const total = tpl.reduce((a, g) => a + g.items.length, 0);
       const fp = {};
@@ -74,6 +78,25 @@ export default function StoreDetail() {
       ? cur.filter((x) => x !== userId)
       : [...cur, userId];
     patch("atos_ingenieure", next);
+  }
+
+  // Lokale (sofortige) Bearbeitung eines Kassen-Feldes.
+  function patchKasse(kasseId, field, value) {
+    setKassen((prev) => prev.map((k) => (k.id === kasseId ? { ...k, [field]: value } : k)));
+  }
+
+  // Persistiert ein Kassen-Feld (Standort/Etage) beim Verlassen des Feldes,
+  // aber nur, wenn es sich gegenüber dem gespeicherten Wert geändert hat.
+  async function saveKasse(kasseId, field, rawValue) {
+    const value = (rawValue || "").trim();
+    const persisted = kassenPersisted.current[kasseId] || {};
+    if ((persisted[field] || "") === value) return;
+    kassenPersisted.current[kasseId] = { ...persisted, [field]: value };
+    patchKasse(kasseId, field, value);
+    try {
+      await updateKasse(kasseId, { [field]: value || null });
+      setSaved(true); setTimeout(() => setSaved(false), 1200);
+    } catch (e) { setErr(e.message); }
   }
 
   function updateKontakt(i, feld, val) {
@@ -220,6 +243,22 @@ export default function StoreDetail() {
                       {fp.done}/{fp.total}
                     </span>
                   </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+                  <label style={{ display: "block" }}>
+                    <div className="label" style={{ fontSize: 10 }}>Standort</div>
+                    <input className="input" style={{ padding: "6px 8px", fontSize: 12 }}
+                      placeholder="z. B. EG Damenmode" value={k.standort || ""}
+                      onChange={(e) => patchKasse(k.id, "standort", e.target.value)}
+                      onBlur={(e) => saveKasse(k.id, "standort", e.target.value)} />
+                  </label>
+                  <label style={{ display: "block" }}>
+                    <div className="label" style={{ fontSize: 10 }}>Etage</div>
+                    <input className="input" style={{ padding: "6px 8px", fontSize: 12 }}
+                      placeholder="z. B. 1. OG" value={k.etage || ""}
+                      onChange={(e) => patchKasse(k.id, "etage", e.target.value)}
+                      onBlur={(e) => saveKasse(k.id, "etage", e.target.value)} />
+                  </label>
                 </div>
                 <div className="bar" style={{ marginBottom: 12 }}>
                   <span style={{ width: `${pct}%`,
