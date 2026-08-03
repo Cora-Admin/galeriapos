@@ -123,11 +123,23 @@ export default function Checklist() {
 
       <div className="panel" style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>Kassen-Hardware</div>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>Kassendaten & Hardware</div>
           {kasseSaved && <span style={{ color: "var(--accent)", fontSize: 12 }}>✓ gespeichert</span>}
         </div>
         <div style={{ display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
+          <label style={{ display: "block" }}>
+            <div className="label">Standort</div>
+            <input className="input" value={kasse.standort || ""}
+              onChange={(e) => onKasseChange("standort", e.target.value)}
+              onBlur={(e) => saveKasse("standort", e.target.value)} />
+          </label>
+          <label style={{ display: "block" }}>
+            <div className="label">Etage</div>
+            <input className="input" value={kasse.etage || ""}
+              onChange={(e) => onKasseChange("etage", e.target.value)}
+              onBlur={(e) => saveKasse("etage", e.target.value)} />
+          </label>
           {HW_FELDER.map((f) => (
             <label key={f.key} style={{ display: "block" }}>
               <div className="label">{f.label}</div>
