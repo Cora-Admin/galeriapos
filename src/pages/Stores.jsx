@@ -25,6 +25,17 @@ export default function Stores() {
            (r.filiale || "").includes(suche)
   );
 
+  // Standardsortierung: nach Migrationsdatum aufsteigend (frühestes zuerst),
+  // Filialen ohne Datum ans Ende, dort nach Name.
+  const sortiert = [...gefiltert].sort((a, b) => {
+    const da = a.migrationsdatum || "";
+    const db = b.migrationsdatum || "";
+    if (da && db) return da.localeCompare(db) || a.name.localeCompare(b.name);
+    if (da) return -1;
+    if (db) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
   return (
     <div>
       <div style={{ marginBottom: 14 }}>
@@ -42,7 +53,7 @@ export default function Stores() {
             </tr>
           </thead>
           <tbody>
-            {gefiltert.map((r) => (
+            {sortiert.map((r) => (
               <tr key={r.id} style={{ cursor: "pointer" }}
                 onClick={() => navigate(`/stores/${r.id}`)}>
                 <td style={{ color: "var(--dim)" }}>{r.filiale}</td>
