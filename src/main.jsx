@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/AuthContext.jsx";
 import Login from "./pages/Login.jsx";
+import ProblemCockpit from "./pages/ProblemCockpit.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Stores from "./pages/Stores.jsx";
 import StoreDetail from "./pages/StoreDetail.jsx";
@@ -34,7 +35,8 @@ function App() {
             </Protected>
           }
         >
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<ProblemCockpit />} />
+          <Route path="/uebersicht" element={<Dashboard />} />
           <Route path="/stores" element={<Stores />} />
           <Route path="/stores/:id" element={<StoreDetail />} />
           <Route path="/stores/:id/kasse/:kasseId" element={<Checklist />} />

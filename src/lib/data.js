@@ -346,6 +346,59 @@ export async function setQueryAnswer(storeId, itemId, antwort, bearbeiter) {
   return data;
 }
 
+// ---------- Problem-Cockpit ----------
+// Alle gemeldeten Probleme (checklist_results.problem) filialübergreifend, inkl.
+// Kasse, Filiale und Checklisten-Punkt. Leere Problemtexte werden entfernt.
+export async function getAllProblems() {
+  const { data, error } = await supabase
+    .from("checklist_results")
+    .select(
+      "id, problem, problem_erledigt, problem_erledigt_am, problem_erledigt_von, updated_at, bearbeiter, " +
+        "kasse:kassen!inner ( id, kassen_nr, standort, etage, " +
+        "store:stores!inner ( id, name, filiale, stadt ) ), " +
+        "item:checklist_template_items ( text )"
+    )
+    .not("problem", "is", null)
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  return (data || [])
+    .filter((r) => r.problem && r.problem.trim())
+    .map((r) => ({
+      id: r.id,
+      problem: r.problem,
+      erledigt: r.problem_erledigt,
+      erledigt_am: r.problem_erledigt_am,
+      erledigt_von: r.problem_erledigt_von,
+      gemeldet_am: r.updated_at,
+      bearbeiter: r.bearbeiter,
+      punkt: r.item?.text || "",
+      kasse_id: r.kasse?.id,
+      kassen_nr: r.kasse?.kassen_nr,
+      standort: r.kasse?.standort,
+      etage: r.kasse?.etage,
+      store_id: r.kasse?.store?.id,
+      store_name: r.kasse?.store?.name,
+      filiale: r.kasse?.store?.filiale,
+      stadt: r.kasse?.store?.stadt,
+    }));
+}
+
+// Markiert ein gemeldetes Problem als erledigt bzw. wieder offen.
+export async function setProblemErledigt(id, erledigt, bearbeiter) {
+  const { data, error } = await supabase
+    .from("checklist_results")
+    .update({
+      problem_erledigt: erledigt,
+      problem_erledigt_am: erledigt ? new Date().toISOString() : null,
+      problem_erledigt_von: erledigt ? bearbeiter || null : null,
+    })
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 // ---------- Kassen-Import (Excel) ----------
 // Legt für eine Filiale eine Kasse an (für den Excel-Import verwendet).
 export async function addKasse(storeId, kassenNr, bezeichnung) {
