@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllProblems, setProblemErledigt } from "../lib/data.js";
+import { getAllProblems, setProblemErledigt, getUsers } from "../lib/data.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { formatDateDE } from "../lib/dates.js";
 
@@ -107,6 +107,7 @@ export default function ProblemCockpit() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [probleme, setProbleme] = useState(null);
+  const [users, setUsers] = useState([]);
   const [err, setErr] = useState("");
   const [filiale, setFiliale] = useState("");   // Filialnummer oder ""
   const [status, setStatus] = useState("offen"); // "alle" | "offen" | "erledigt"
@@ -114,7 +115,15 @@ export default function ProblemCockpit() {
 
   useEffect(() => {
     getAllProblems().then(setProbleme).catch((e) => setErr(e.message));
+    getUsers().then(setUsers).catch(() => {}); // für Namensauflösung (E-Mail -> Name)
   }, []);
+
+  // E-Mail -> Anzeigename (Fallback: E-Mail selbst).
+  const nameVon = useMemo(() => {
+    const m = {};
+    users.forEach((u) => { if (u.email) m[u.email.toLowerCase()] = u.name || u.email; });
+    return (email) => (email ? (m[email.toLowerCase()] || email) : "—");
+  }, [users]);
 
   // Kennzahlen & Diagramme über den GESAMTEN Datenbestand (stabile Übersicht).
   const stats = useMemo(() => {
@@ -246,16 +255,16 @@ export default function ProblemCockpit() {
           {/* Tabelle */}
           <div className="panel" style={{ padding: 0 }}>
             <div className="table-wrap">
-              <table style={{ minWidth: 820 }}>
+              <table style={{ minWidth: 940 }}>
                 <thead>
                   <tr>
                     <th>Status</th><th>Filiale</th><th>Kasse</th><th>Checklisten-Punkt</th>
-                    <th>Problem</th><th>Gemeldet</th><th></th>
+                    <th>Problem</th><th>Gemeldet von</th><th>Gemeldet</th><th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {gefiltert.length === 0 ? (
-                    <tr><td colSpan={7} style={{ color: "var(--dim)", textAlign: "center", padding: 24 }}>
+                    <tr><td colSpan={8} style={{ color: "var(--dim)", textAlign: "center", padding: 24 }}>
                       Keine Probleme für diese Filter.
                     </td></tr>
                   ) : gefiltert.map((p) => (
@@ -280,6 +289,7 @@ export default function ProblemCockpit() {
                       <td style={{ whiteSpace: "nowrap" }}>{kasseLabel(p)}</td>
                       <td style={{ color: "var(--dim)", maxWidth: 200 }}>{p.punkt}</td>
                       <td style={{ maxWidth: 320 }}>{p.problem}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>{nameVon(p.gemeldet_von)}</td>
                       <td style={{ color: "var(--dim)", whiteSpace: "nowrap" }}>{formatDateDE(p.gemeldet_am)}</td>
                       <td style={{ whiteSpace: "nowrap" }}>
                         <button className="btn" style={{ padding: "6px 10px" }}

@@ -353,7 +353,8 @@ export async function getAllProblems() {
   const { data, error } = await supabase
     .from("checklist_results")
     .select(
-      "id, problem, problem_erledigt, problem_erledigt_am, problem_erledigt_von, updated_at, bearbeiter, " +
+      "id, problem, problem_erledigt, problem_erledigt_am, problem_erledigt_von, " +
+        "problem_gemeldet_von, problem_gemeldet_am, updated_at, bearbeiter, " +
         "kasse:kassen!inner ( id, kassen_nr, standort, etage, " +
         "store:stores!inner ( id, name, filiale, stadt ) ), " +
         "item:checklist_template_items ( text )"
@@ -369,7 +370,8 @@ export async function getAllProblems() {
       erledigt: r.problem_erledigt,
       erledigt_am: r.problem_erledigt_am,
       erledigt_von: r.problem_erledigt_von,
-      gemeldet_am: r.updated_at,
+      gemeldet_von: r.problem_gemeldet_von,
+      gemeldet_am: r.problem_gemeldet_am || r.updated_at,
       bearbeiter: r.bearbeiter,
       punkt: r.item?.text || "",
       kasse_id: r.kasse?.id,

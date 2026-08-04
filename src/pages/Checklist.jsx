@@ -87,8 +87,15 @@ export default function Checklist() {
   async function saveText(itemId, field, val) {
     const prev = saved.current[itemId] || {};
     if ((val || "") === (prev[field] || "")) return;
+    const patch = { [field]: val || null };
+    // Beim Melden eines Problems zusätzlich festhalten, wer es gemeldet hat.
+    if (field === "problem") {
+      const hatProblem = !!(val && val.trim());
+      patch.problem_gemeldet_von = hatProblem ? (user?.email || null) : null;
+      patch.problem_gemeldet_am = hatProblem ? new Date().toISOString() : null;
+    }
     try {
-      await setResultText(kasseId, itemId, { [field]: val || null });
+      await setResultText(kasseId, itemId, patch);
       saved.current[itemId] = { ...prev, [field]: val };
     } catch (e) {
       setErr(e.message);
