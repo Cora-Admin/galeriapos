@@ -12,6 +12,19 @@ import DateInputDE from "../components/DateInputDE.jsx";
 // Rollen der 3 Ansprechpartner je Filiale (Reihenfolge = Position in der Liste).
 const KONTAKT_ROLLEN = ["Filialansprechpartner", "Vertreter", "Fieldservice"];
 
+// Spalten der Kassenübersicht (Reihenfolge = Anzeige in der Tabelle).
+const KASSE_SPALTEN = [
+  { key: "standort", label: "Standort" },
+  { key: "etage", label: "Etage" },
+  { key: "bezeichnung", label: "Bezeichnung" },
+  { key: "bon_drucker", label: "Bon-Drucker" },
+  { key: "scanner", label: "Scanner" },
+  { key: "kassenlade", label: "Kassenlade" },
+  { key: "lan", label: "LAN" },
+  { key: "neuer_hardwaretyp", label: "Neuer Hardwaretyp" },
+  { key: "bemerkungen", label: "Bemerkungen" },
+];
+
 // Setzt den Kassennamen aus Nummer, Standort und Etage zusammen,
 // z. B. "Kasse 8 - Kassenblock EG".
 function kasseName(k) {
@@ -50,6 +63,7 @@ export default function StoreDetail() {
   const antwortenSaved = useRef({}); // item_id -> zuletzt gespeicherte Antwort
   const [openStamm, setOpenStamm] = useState(true); // Panel „Stammdaten" ein-/ausgeklappt
   const [openPos, setOpenPos] = useState(true); // Panel „POS Hardware & Migration" ein-/ausgeklappt
+  const [openKassen, setOpenKassen] = useState(false); // Modal „Kassenübersicht" offen?
 
   useEffect(() => { load(); }, [id]);
 
@@ -281,8 +295,14 @@ export default function StoreDetail() {
       </div>
 
       <div className="panel" style={{ marginTop: 18 }}>
-        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>
-          Kassen & Installations-Checklisten
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>
+            Kassen & Installations-Checklisten
+          </div>
+          <button className="btn" onClick={() => setOpenKassen(true)} disabled={kassen.length === 0}>
+            Kassenübersicht
+          </button>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: 12 }}>
           {kassen.map((k) => {
@@ -318,6 +338,66 @@ export default function StoreDetail() {
           })}
         </div>
       </div>
+
+      {openKassen && (
+        <div onClick={() => setOpenKassen(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 50,
+            background: "rgba(16, 36, 58, .45)", display: "flex",
+            alignItems: "flex-start", justifyContent: "center", padding: 24, overflowY: "auto" }}>
+          <div className="panel fade-in" onClick={(e) => e.stopPropagation()}
+            style={{ width: "100%", maxWidth: 1100, margin: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+              gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>Kassenübersicht</div>
+                <div style={{ fontSize: 12, color: "var(--dim)" }}>
+                  {store.name} · Filiale {store.filiale} · {kassen.length} Kasse(n)
+                </div>
+              </div>
+              <button className="btn btn-ghost" onClick={() => setOpenKassen(false)}>✕ Schließen</button>
+            </div>
+            <div className="table-wrap">
+              <table style={{ minWidth: 900 }}>
+                <thead>
+                  <tr>
+                    <th>Kasse</th>
+                    {KASSE_SPALTEN.map((s) => <th key={s.key}>{s.label}</th>)}
+                    <th>Fortschritt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {kassen.map((k) => {
+                    const fp = fortschritt[k.id] || { done: 0, total: 0, probleme: 0 };
+                    const pct = fp.total ? Math.round((fp.done / fp.total) * 100) : 0;
+                    return (
+                      <tr key={k.id}>
+                        <td style={{ fontWeight: 700, whiteSpace: "nowrap" }}>Kasse {k.kassen_nr}</td>
+                        {KASSE_SPALTEN.map((s) => (
+                          <td key={s.key} style={{ color: k[s.key] ? "var(--text)" : "var(--dim)" }}>
+                            {k[s.key] || "–"}
+                          </td>
+                        ))}
+                        <td style={{ whiteSpace: "nowrap" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ color: pct === 100 ? "var(--fertig)" : "var(--dim)",
+                              fontWeight: 600 }}>{fp.done}/{fp.total}</span>
+                            {fp.probleme > 0 && (
+                              <span title={`${fp.probleme} gemeldete(s) Problem(e)`}
+                                style={{ color: "var(--coral)", fontSize: 12, fontWeight: 700 }}>
+                                ⚠ {fp.probleme}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
