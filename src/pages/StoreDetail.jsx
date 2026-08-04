@@ -9,8 +9,8 @@ import { STORE_TYPEN } from "../components/Badges.jsx";
 import MultiSelect from "../components/MultiSelect.jsx";
 import DateInputDE from "../components/DateInputDE.jsx";
 
-// Rollen der 3 Ansprechpartner je Filiale (Reihenfolge = Position in der Liste).
-const KONTAKT_ROLLEN = ["Filialansprechpartner", "Vertreter", "Fieldservice"];
+// Rollen der Ansprechpartner je Filiale (Reihenfolge = Position in der Liste).
+const KONTAKT_ROLLEN = ["FGF oder KL", "Kassenverantwortlicher", "Vertreter", "Fieldservice"];
 
 // Setzt den Kassennamen aus Nummer, Standort und Etage zusammen,
 // z. B. "Kasse 8 - Kassenblock EG".
