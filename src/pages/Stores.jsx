@@ -4,11 +4,13 @@ import { getMigrationStatus } from "../lib/data.js";
 import { StatusBadge } from "../components/StatusBadge.jsx";
 import { StoreTypBadge, ProblemCount } from "../components/Badges.jsx";
 import { formatDateDE } from "../lib/dates.js";
+import StoresMap from "../components/StoresMap.jsx";
 
 export default function Stores() {
   const [rows, setRows] = useState(null);
   const [suche, setSuche] = useState("");
   const [err, setErr] = useState("");
+  const [karteOffen, setKarteOffen] = useState(false); // Kartenübersicht-Modal
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,10 +40,20 @@ export default function Stores() {
 
   return (
     <div>
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
         <input className="input" style={{ maxWidth: 320 }}
           placeholder="Filiale, Stadt oder Nummer suchen…"
           value={suche} onChange={(e) => setSuche(e.target.value)} />
+        <button className="btn" title="Kartenübersicht" aria-label="Kartenübersicht"
+          onClick={() => setKarteOffen(true)}
+          style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 7 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z" />
+            <path d="M9 3v15M15 6v15" />
+          </svg>
+          <span className="hide-sm">Karte</span>
+        </button>
       </div>
       <div className="panel" style={{ padding: 0 }}>
         <div className="table-wrap">
@@ -70,6 +82,8 @@ export default function Stores() {
         </table>
         </div>
       </div>
+
+      {karteOffen && <StoresMap rows={rows} onClose={() => setKarteOffen(false)} />}
     </div>
   );
 }
