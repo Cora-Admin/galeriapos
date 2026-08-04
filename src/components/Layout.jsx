@@ -4,7 +4,8 @@ import { useAuth } from "../lib/AuthContext.jsx";
 import BrandMark from "./BrandMark.jsx";
 
 const NAV = [
-  { to: "/", label: "Übersicht", end: true },
+  { to: "/", label: "Cockpit", end: true },
+  { to: "/uebersicht", label: "Übersicht" },
   { to: "/stores", label: "Filialen" },
   { label: "Templates", children: [
     { to: "/vorlage", label: "Migrationscheckliste" },
