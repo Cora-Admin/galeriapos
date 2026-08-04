@@ -17,15 +17,15 @@ function kasseLabel(p) {
 // ---- Status-Donut (Offen vs. Erledigt) --------------------------------------
 function StatusDonut({ offen, erledigt }) {
   const total = offen + erledigt;
-  const r = 54, cx = 70, cy = 70, sw = 20;
+  const size = 190, r = 74, cx = size / 2, cy = size / 2, sw = 28;
   const C = 2 * Math.PI * r;
   const fracOff = total ? offen / total : 0;
   const offLen = fracOff * C;
   const erlLen = (total ? erledigt / total : 0) * C;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
-      <svg width="140" height="140" viewBox="0 0 140 140" role="img"
+    <div style={{ display: "flex", alignItems: "center", gap: 28, flexWrap: "wrap" }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img"
         aria-label={`Offen ${offen}, Erledigt ${erledigt}`}>
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--panel2)" strokeWidth={sw} />
         {total > 0 && offen > 0 && (
@@ -41,14 +41,14 @@ function StatusDonut({ offen, erledigt }) {
             <title>Erledigt: {erledigt}</title>
           </circle>
         )}
-        <text x={cx} y={cy - 4} textAnchor="middle" style={{ fontSize: 26, fontWeight: 800, fill: "var(--text)" }}>
+        <text x={cx} y={cy - 4} textAnchor="middle" style={{ fontSize: 38, fontWeight: 800, fill: "var(--text)" }}>
           {total}
         </text>
-        <text x={cx} y={cy + 16} textAnchor="middle" style={{ fontSize: 11, fill: "var(--dim)" }}>
+        <text x={cx} y={cy + 20} textAnchor="middle" style={{ fontSize: 13, fill: "var(--dim)" }}>
           {total === 1 ? "Problem" : "Probleme"}
         </text>
       </svg>
-      <div style={{ display: "grid", gap: 10 }}>
+      <div style={{ display: "grid", gap: 14 }}>
         <LegendRow color={OFFEN} icon="⚠" label="Offen" value={offen} />
         <LegendRow color={ERLEDIGT} icon="✓" label="Erledigt" value={erledigt} />
       </div>
@@ -58,10 +58,10 @@ function StatusDonut({ offen, erledigt }) {
 
 function LegendRow({ color, icon, label, value }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
-      <span style={{ width: 12, height: 12, borderRadius: 3, background: color, flex: "0 0 auto" }} />
+    <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 15 }}>
+      <span style={{ width: 14, height: 14, borderRadius: 4, background: color, flex: "0 0 auto" }} />
       <span style={{ color: "var(--dim)" }}>{icon} {label}</span>
-      <strong style={{ color: "var(--text)", marginLeft: 4 }}>{value}</strong>
+      <strong style={{ color: "var(--text)", marginLeft: 4, fontSize: 17 }}>{value}</strong>
     </div>
   );
 }
@@ -73,17 +73,17 @@ function TopFilialen({ items }) {
   }
   const max = Math.max(...items.map((i) => i.count));
   return (
-    <div style={{ display: "grid", gap: 10 }}>
+    <div style={{ display: "grid", gap: 14 }}>
       {items.map((i) => (
-        <div key={i.filiale} style={{ display: "grid", gridTemplateColumns: "minmax(90px, 34%) 1fr auto",
-          alignItems: "center", gap: 10 }} title={`${i.name}: ${i.count} offen`}>
-          <span style={{ fontSize: 12, color: "var(--text)", overflow: "hidden",
+        <div key={i.filiale} style={{ display: "grid", gridTemplateColumns: "minmax(100px, 34%) 1fr auto",
+          alignItems: "center", gap: 12 }} title={`${i.name}: ${i.count} offen`}>
+          <span style={{ fontSize: 14, color: "var(--text)", overflow: "hidden",
             textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{i.name}</span>
-          <div style={{ height: 14, background: "var(--panel2)", borderRadius: 99, overflow: "hidden" }}>
+          <div style={{ height: 20, background: "var(--panel2)", borderRadius: 99, overflow: "hidden" }}>
             <div style={{ width: `${(i.count / max) * 100}%`, height: "100%", background: OFFEN,
-              borderRadius: 99, minWidth: 6 }} />
+              borderRadius: 99, minWidth: 8 }} />
           </div>
-          <strong style={{ fontSize: 13, color: "var(--text)", minWidth: 18, textAlign: "right" }}>{i.count}</strong>
+          <strong style={{ fontSize: 15, color: "var(--text)", minWidth: 20, textAlign: "right" }}>{i.count}</strong>
         </div>
       ))}
     </div>
@@ -202,18 +202,23 @@ export default function ProblemCockpit() {
           </div>
 
           {/* Diagramme */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 18, marginBottom: 18 }}>
-            <div className="panel">
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>Status</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+            gap: 20, marginBottom: 24 }}>
+            <div className="panel" style={{ padding: 24 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 18 }}>Status</div>
               <StatusDonut offen={stats.offen} erledigt={stats.erledigt} />
             </div>
-            <div className="panel">
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14 }}>
+            <div className="panel" style={{ padding: 24 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 18 }}>
                 Filialen mit den meisten offenen Problemen
               </div>
               <TopFilialen items={stats.top} />
             </div>
+          </div>
+
+          {/* Problemliste */}
+          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>
+            Gemeldete Probleme
           </div>
 
           {/* Filter */}
