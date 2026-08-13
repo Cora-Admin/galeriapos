@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: { host: true, port: 5173 },
-  // SPA-Build; Nginx muss alle Routen auf index.html umleiten (siehe README)
+  // SPA-Build; das Hosting muss alle Routen auf index.html umleiten
+  // (auf Vercel erledigt das der Rewrite in vercel.json)
   build: { outDir: "dist", sourcemap: false },
 });

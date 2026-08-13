@@ -37,43 +37,30 @@ npm run build             # erzeugt dist/
 npm run preview           # optional lokal testen
 ```
 
-## 4. Deployment auf EC2 (Nginx)
+## 4. Deployment (Vercel)
 
-Das Vorgehen entspricht deinem bestehenden everstore-Setup.
+Das Hosting läuft auf **Vercel** unter https://galeria.everstore.consulting.
+Jeder Push auf `main` wird automatisch gebaut und veröffentlicht, jeder Pull
+Request bekommt eine eigene Preview-URL.
 
-```bash
-# auf der EC2, im Projektverzeichnis nach git pull:
-npm ci
-npm run build
-# dist/ in das von Nginx ausgelieferte Verzeichnis kopieren, z. B.:
-sudo rsync -a --delete dist/ /var/www/pos-cockpit/
-```
+Die Konfiguration steht in `vercel.json`:
 
-**Nginx-Server-Block** (SPA-Routing: alle Pfade auf index.html, sonst 404 bei Reload):
+- **SPA-Routing** – alle Pfade werden auf `/index.html` umgeschrieben, damit
+  Deep-Links wie `/stores/:id` auch bei hartem Reload funktionieren. Statische
+  Dateien liefert Vercel vor dem Rewrite direkt aus.
+- **Caching** – die gehashten Dateien unter `/assets/` werden ein Jahr lang
+  `immutable` gecacht, `index.html` bewusst nicht.
 
-```nginx
-server {
-    listen 80;
-    server_name galeria.everstore.consulting;
+Die beiden Supabase-Werte müssen in Vercel als Environment-Variablen
+(`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) hinterlegt sein – Vite backt sie
+zur **Build-Zeit** ein, nach einer Änderung ist also ein neuer Deploy nötig.
 
-    root /var/www/pos-cockpit;
-    index index.html;
+Die vollständige Einrichtung (Vercel-Projekt, DNS in Cloudflare,
+Supabase-Redirect-URLs) steht in **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-Danach `sudo nginx -t && sudo systemctl reload nginx`.
-TLS wie gewohnt über Cloudflare bzw. certbot.
-
-### GitHub Actions (optional, analog zur landingpage-Pipeline)
-
-Build-Step `npm ci && npm run build`, anschließend `dist/` per rsync/scp auf die EC2
-in `/var/www/pos-cockpit/` übertragen. Die `.env`-Werte als Repository-Secrets
-hinterlegen und im Build-Step als `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`
-bereitstellen.
+> Der frühere EC2-/Nginx-Deploy (`.github/workflows/deploy.yml`,
+> `deploy/nginx-pos-cockpit.conf`) ist stillgelegt und läuft nur noch auf
+> manuellen Start – Details am Ende von DEPLOYMENT.md.
 
 ## Projektstruktur
 
