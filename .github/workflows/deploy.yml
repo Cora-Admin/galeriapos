@@ -1,11 +1,17 @@
-name: Deploy POS Cockpit
+name: Deploy POS Cockpit (EC2, stillgelegt)
 
-# Deployment auf Knopfdruck:
-# - automatisch bei jedem Push auf main
-# - oder manuell über den "Run workflow"-Button (workflow_dispatch)
+# STILLGELEGT – das Hosting läuft auf Vercel (siehe DEPLOYMENT.md).
+# Vercel baut und veröffentlicht bei jedem Push auf main automatisch.
+#
+# Dieser Workflow bleibt nur als Rückfallebene erhalten, falls kurzfristig
+# wieder auf die EC2 ausgeliefert werden muss. Er startet deshalb NICHT mehr
+# automatisch, sondern ausschließlich manuell über den "Run workflow"-Button.
+#
+# Achtung beim manuellen Start: Der Schritt "Auf der EC2 veröffentlichen"
+# kopiert deploy/nginx-pos-cockpit.conf über die Config auf dem Server. Diese
+# Config lauscht nur auf Port 80 – ein dort per certbot eingerichteter
+# TLS-Block würde dabei überschrieben.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
