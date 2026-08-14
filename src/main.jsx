@@ -12,6 +12,7 @@ import Template from "./pages/Template.jsx";
 import QueryTemplate from "./pages/QueryTemplate.jsx";
 import StoreQuery from "./pages/StoreQuery.jsx";
 import Users from "./pages/Users.jsx";
+import Settings from "./pages/Settings.jsx";
 import Import from "./pages/Import.jsx";
 import Layout from "./components/Layout.jsx";
 import "./index.css";
@@ -44,6 +45,7 @@ function App() {
           <Route path="/vorlage" element={<Template />} />
           <Route path="/abfrage-vorlage" element={<QueryTemplate />} />
           <Route path="/users" element={<Users />} />
+          <Route path="/einstellungen" element={<Settings />} />
           <Route path="/import" element={<Import />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

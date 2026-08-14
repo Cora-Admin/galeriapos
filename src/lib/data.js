@@ -207,10 +207,9 @@ export async function getUsers() {
   return data;
 }
 
-// Ruft die Edge Function `manage-users` (Service-Role, serverseitig) auf.
-// Neue User werden ausschließlich in Supabase Auth angelegt – nicht aus der App.
-async function callManageUsers(payload) {
-  const { data, error } = await supabase.functions.invoke("manage-users", { body: payload });
+// Ruft eine Edge Function auf und hebt deren Fehlermeldung nach oben durch.
+async function invokeFunction(name, payload) {
+  const { data, error } = await supabase.functions.invoke(name, { body: payload });
   if (error) {
     // Fehlermeldung aus der Function-Antwort herausziehen, falls vorhanden.
     let msg = error.message;
@@ -219,6 +218,12 @@ async function callManageUsers(payload) {
   }
   if (data?.error) throw new Error(data.error);
   return data;
+}
+
+// Ruft die Edge Function `manage-users` (Service-Role, serverseitig) auf.
+// Neue User werden ausschließlich in Supabase Auth angelegt – nicht aus der App.
+async function callManageUsers(payload) {
+  return invokeFunction("manage-users", payload);
 }
 
 export async function deleteUserAccount(user) {
@@ -399,6 +404,38 @@ export async function setProblemErledigt(id, erledigt, bearbeiter) {
     .single();
   if (error) throw error;
   return data;
+}
+
+// ---------- Einstellungen ----------
+// `app_settings` ist eine simple Key/Value-Tabelle. Gelesen wird sie am Stück,
+// geschrieben wird nur, was sich geändert hat.
+export async function getSettings() {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("schluessel, wert");
+  if (error) throw error;
+  return Object.fromEntries((data || []).map((r) => [r.schluessel, r.wert ?? ""]));
+}
+
+export async function saveSettings(patch, bearbeiter) {
+  const rows = Object.entries(patch).map(([schluessel, wert]) => ({
+    schluessel,
+    wert: wert ?? "",
+    updated_at: new Date().toISOString(),
+    updated_von: bearbeiter || null,
+  }));
+  const { error } = await supabase
+    .from("app_settings")
+    .upsert(rows, { onConflict: "schluessel" });
+  if (error) throw error;
+}
+
+// ---------- Problem-Benachrichtigung ----------
+// Stößt für ein neu gemeldetes Problem den Mailversand an. Die Edge Function
+// entscheidet selbst, ob tatsächlich eine Mail rausgeht (Einstellungen, bereits
+// versendet) und liefert das in `sent`/`reason` zurück.
+export async function sendProblemMail(resultId) {
+  return invokeFunction("send-problem-mail", { result_id: resultId });
 }
 
 // ---------- Kassen-Import (Excel) ----------

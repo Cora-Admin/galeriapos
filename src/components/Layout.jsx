@@ -12,6 +12,7 @@ const NAV = [
     { to: "/abfrage-vorlage", label: "Filialabfrage" },
   ] },
   { to: "/users", label: "Users" },
+  { to: "/einstellungen", label: "Einstellungen" },
 ];
 
 function NavDropdown({ item }) {

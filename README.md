@@ -30,6 +30,31 @@ Row-Level-Security (RLS) geschützt. Der `service_role`-Key gehört NIEMALS ins 
 > Rollenrechte (z. B. Steering-Board nur lesen) lassen sich später über
 > verfeinerte RLS-Policies ergänzen.
 
+## 2a. E-Mail bei Rollout-Problemen (einmalig)
+
+Wird in einer Kassen-Checkliste ein Problem gemeldet, verschickt die App eine
+E-Mail. Betreff: Filiale, Kasse und ein Kurztitel; im Text die vollständige
+Problembeschreibung samt Checklistenpunkt, Melder und Link ins Cockpit.
+
+Verschickt wird **nur beim erstmaligen Melden** – wer den Text nachträglich
+ändert, löst keine weitere Mail aus. Der Versand wird auf dem Datensatz
+vermerkt (`checklist_results.problem_mail_gesendet_am`); wird das Problem
+gelöscht, ist der Weg für eine spätere Neumeldung wieder frei.
+
+Einrichtung:
+
+1. **Resend-Account** anlegen, API-Key erzeugen und die Absenderdomain
+   verifizieren (ohne eigene Domain funktioniert `onboarding@resend.dev`).
+2. Im **Supabase-Dashboard → Edge Functions → Secrets** das Secret
+   `RESEND_API_KEY` hinterlegen. Der Key gehört nicht ins Repo und nicht
+   in die `.env` des Frontends.
+3. In der App unter **Einstellungen** Empfänger, Absender und die Adresse des
+   Cockpits eintragen und den Versand aktivieren.
+
+Der Versand läuft über die Edge Function `send-problem-mail`
+(`supabase/functions/send-problem-mail/`). Sie lädt den Problemtext selbst aus
+der Datenbank – der Client übergibt nur, um welchen Datensatz es geht.
+
 ## 3. Produktions-Build
 
 ```bash
@@ -84,7 +109,11 @@ src/
     Template.jsx       Vorlage Checkliste
     QueryTemplate.jsx  Vorlage Storeabfrage
     Users.jsx          Userverwaltung (zeigt die Supabase-Auth-User)
+    Settings.jsx       Einstellungen (Empfänger der Problem-Mails)
     Import.jsx         Excel-/CSV-Import Kassenliste (SheetJS, lazy)
+supabase/
+  functions/
+    send-problem-mail/ Edge Function: Mail bei neu gemeldetem Problem (Resend)
 ```
 
 ## Datenbank (Supabase Projekt "Galeria Rollout")
@@ -95,7 +124,11 @@ src/
   Checklisten-Ergebniszeilen)
 - `checklist_template_groups` / `checklist_template_items` – Checklisten-Vorlage
 - `checklist_results` – abgehakte Punkte pro Kasse (mit Zeitstempel + Bearbeiter,
-  je Punkt zusätzlich Freitextfelder `kommentar` und `problem`)
+  je Punkt zusätzlich Freitextfelder `kommentar` und `problem`;
+  `problem_mail_gesendet_am` hält fest, ob die Benachrichtigung raus ist)
+- `app_settings` – Key/Value-Einstellungen der App (Empfänger, Absender und
+  Aktiv-Schalter der Problem-Mails, Basis-URL für den Link in der Mail).
+  Gepflegt über die Seite **Einstellungen**
 - `app_users` – Verzeichnis mit Metadaten je User (Name, E-Mail, Rolle, aktiv,
   `auth_user_id`). Dient als stabile Referenz für die ATOS-Ingenieur-Zuordnung der
   Filialen. **Quelle der Wahrheit für die Userübersicht ist Supabase Auth** – die
