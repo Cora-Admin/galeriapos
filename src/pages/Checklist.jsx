@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   getStore, getKasse, updateKasse, getTemplate, getResults, setResult, setResultText,
+  sendProblemMail,
 } from "../lib/data.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 
@@ -26,6 +27,7 @@ export default function Checklist() {
   const saved = useRef({}); // item_id -> { kommentar, problem } zuletzt gespeichert
   const kassePersisted = useRef({}); // zuletzt gespeicherte Hardware-Felder der Kasse
   const [kasseSaved, setKasseSaved] = useState(false);
+  const [mailHinweis, setMailHinweis] = useState(null); // { text, fehler }
   const [err, setErr] = useState("");
 
   useEffect(() => { load(); }, [kasseId]);
@@ -88,18 +90,42 @@ export default function Checklist() {
     const prev = saved.current[itemId] || {};
     if ((val || "") === (prev[field] || "")) return;
     const patch = { [field]: val || null };
+    // Ein Problem gilt als neu, wenn das Feld vorher leer war und jetzt Text
+    // enthält – nur dafür geht eine Benachrichtigung raus.
+    const hatProblem = !!(val && val.trim());
+    const neuesProblem = field === "problem" && hatProblem && !(prev.problem || "").trim();
     // Beim Melden eines Problems zusätzlich festhalten, wer es gemeldet hat.
     if (field === "problem") {
-      const hatProblem = !!(val && val.trim());
       patch.problem_gemeldet_von = hatProblem ? (user?.email || null) : null;
       patch.problem_gemeldet_am = hatProblem ? new Date().toISOString() : null;
+      // Wird das Problem gelöscht, darf eine spätere Neumeldung wieder eine
+      // Mail auslösen – sonst blockt der Versandvermerk sie dauerhaft.
+      if (!hatProblem) patch.problem_mail_gesendet_am = null;
     }
     try {
-      await setResultText(kasseId, itemId, patch);
+      const row = await setResultText(kasseId, itemId, patch);
       saved.current[itemId] = { ...prev, [field]: val };
+      if (neuesProblem && row?.id) benachrichtige(row.id);
     } catch (e) {
       setErr(e.message);
     }
+  }
+
+  // Verschickt die Problem-Mail. Bewusst ohne await im Speicherpfad: ob die Mail
+  // rausgeht, darf das Erfassen des Problems weder blockieren noch scheitern
+  // lassen. Ist der Versand in den Einstellungen aus, bleibt es still.
+  async function benachrichtige(resultId) {
+    try {
+      const res = await sendProblemMail(resultId);
+      if (res?.sent) {
+        setMailHinweis({ text: `Problem per E-Mail an ${res.to.join(", ")} gemeldet.` });
+      } else if (res?.reason && res.reason !== "Mailversand ist deaktiviert") {
+        setMailHinweis({ text: `Keine E-Mail verschickt: ${res.reason}.`, fehler: true });
+      }
+    } catch (e) {
+      setMailHinweis({ text: `E-Mail konnte nicht verschickt werden: ${e.message}`, fehler: true });
+    }
+    setTimeout(() => setMailHinweis(null), 6000);
   }
 
   if (err) return <div className="panel" style={{ color: "var(--coral)" }}>Fehler: {err}</div>;
@@ -127,6 +153,13 @@ export default function Checklist() {
           <div style={{ fontSize: 11, color: "var(--dim)" }}>{done} von {total}</div>
         </div>
       </div>
+
+      {mailHinweis && (
+        <div className="panel" style={{ marginBottom: 16, padding: "10px 14px", fontSize: 13,
+          color: mailHinweis.fehler ? "var(--coral)" : "var(--dim)" }}>
+          {mailHinweis.text}
+        </div>
+      )}
 
       <div className="panel" style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>

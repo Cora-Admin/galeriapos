@@ -37,6 +37,11 @@ Ohne diesen Schritt kann sich niemand einloggen.
 
 Die Redirect-URLs folgen in Schritt 6.
 
+Für die E-Mail-Benachrichtigung bei Rollout-Problemen zusätzlich unter
+**Edge Functions → Secrets** das Secret `RESEND_API_KEY` hinterlegen. Empfänger
+und Absender werden nicht hier, sondern in der App unter **Einstellungen**
+gepflegt – Details in der README.
+
 ## 2. Vercel-Projekt anlegen
 
 1. Auf [vercel.com](https://vercel.com) mit dem GitHub-Account anmelden.
