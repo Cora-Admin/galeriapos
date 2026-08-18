@@ -6,13 +6,17 @@ import {
 } from "../lib/data.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 
-// Editierbare Hardware-Felder im Kopf der Checkliste (pro Kasse).
+// Editierbare Hardware- und Gerätefelder im Kopf der Checkliste (pro Kasse).
 const HW_FELDER = [
   { key: "bon_drucker", label: "Bon-Drucker" },
   { key: "scanner", label: "Scanner" },
   { key: "kassenlade", label: "Kassenlade" },
   { key: "lan", label: "LAN" },
   { key: "neuer_hardwaretyp", label: "Neuer Hardwaretyp" },
+  { key: "mac_adresse", label: "MAC-Adresse" },
+  { key: "ip_adresse", label: "IP-Adresse" },
+  { key: "seriennummer", label: "Seriennummer" },
+  { key: "bst_nummer", label: "BST-Nummer" },
 ];
 
 export default function Checklist() {
